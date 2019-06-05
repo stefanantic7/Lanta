@@ -1,0 +1,68 @@
+program                     : declarations
+
+declarations                : (import_function | function_declaration | var_declaration_list | statement_list)*
+
+import_function             : ID<'use'> ID (COMMA ID)*
+
+function_declaration        : ID<'decfun'> ID LPAREN parameters RPAREN COLON function_type_spec function_body
+
+parameters                  : empty
+							| param (COMMA param)*
+
+param                       : variable COLON type_spec
+
+function_body               : LBRACKET statement_list RBRACKET
+
+var_declaration_list        : variable COLON type_spec var_initialization SEMICOLON
+
+var_initialization          : (ASSIGN (expr | string_expr | bool_expr))?
+
+statement_list              : var_declaration_list
+							| statement
+
+statement                   : assignment_statement
+							| function_call SEMICOLON
+							| condition_statement
+							| return_statement
+							| loop_condition
+							| empty
+
+assignment_statement        : variable ASSIGN (expr | string_expr | bool_expr) SEMICOLON
+
+return_statement            : RETURN (expr| string_expr | bool_expr) SEMICOLON
+
+condition_statement         : ID<'cond'> LPAREN bool_expr RPAREN LBRACKET statement_list RBRACKET
+
+loop_condition              : ID<'loond'> LPAREN bool_expr RPAREN LBRACKET statement_list RBRACKET
+
+type_spec                   : (int | float | string | array | boolean)
+
+function_type_spec          : (int | float | string | array | boolean | do)
+
+variable                    : DOLLAR ID
+
+bool_expr                   : logic_unar_operation? bool
+
+bool                        : expr ((comparision_operation | logic_unar_operation?logic_operation) expr)*
+
+comparision_operation       : (LT | GT | LE | GE | EQ | NEQ)
+
+logic_operation             : AND, OR
+
+logic_unar_operation        : NOT
+
+expr                        : term ((PLUS | MINUS) term)*
+
+string_expr                 : STRING (DOT STRING)*
+
+term                        : factor ((MUL | DIV | REAL_DIV | MOD) factor)*
+
+factor                      : PLUS factor
+							| MINUS factor
+							| INT_NUMBER
+							| FLOAT_NUMBER
+							| LPAREN expr RPAREN
+							| variable
+							| function_call
+
+function_call               : AT ID LPAREN (expr | string_expr | bool_expr)? (COMMA expr | COMMA string_expr | bool_expr)* RPAREN

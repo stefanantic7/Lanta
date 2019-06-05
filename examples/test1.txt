@@ -1,0 +1,6 @@
+use cget, cput;
+use cast_to;
+
+dec $a: int = 5+3*5;
+dec $stringic: string = "pera jede jaja"." i slaninu"." a voli i kupus";
+dec $b: float = 3.4+1.1;
