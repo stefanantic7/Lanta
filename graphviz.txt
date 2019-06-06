@@ -1,6 +1,6 @@
 program                     : declarations
 
-declarations                : (import_function | function_declaration | var_declaration_list | statement_list)*
+declarations                : (import_function | function_declaration | statement_list)*
 
 import_function             : ID<'use'> ID (COMMA ID)*
 
@@ -11,7 +11,7 @@ parameters                  : empty
 
 param                       : variable COLON type_spec
 
-function_body               : LBRACKET statement_list RBRACKET
+function_body               : LBRACKET statement_list* return_statement? RBRACKET
 
 var_declaration_list        : variable COLON type_spec var_initialization SEMICOLON
 
@@ -23,7 +23,6 @@ statement_list              : var_declaration_list
 statement                   : assignment_statement
 							| function_call SEMICOLON
 							| condition_statement
-							| return_statement
 							| loop_condition
 							| empty
 
