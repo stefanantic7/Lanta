@@ -23,3 +23,10 @@ cond($pol == "f") {
 }
 
 @cput("Vasa idealna kilaza je:".@cast_to($idealna_kilaza, "string"));
+
+
+
+
+##
+not(5+3 > 5+10) and not(1==1)
+##

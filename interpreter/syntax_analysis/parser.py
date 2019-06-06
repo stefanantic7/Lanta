@@ -17,13 +17,15 @@ class Parser(object):
         else:
             self.error()
 
-
     def program(self):
         declarations = []
-        print(self.current_token)
+        """
+            (import_function | function_declaration | var_declaration_list | statement_list)*
+        """
+
         while self.current_token.type in [USE, DEC]:
             if self.current_token.type == USE:
-                declarations.extend(self.include_functions())
+                declarations.extend(self.import_function())
             elif self.current_token.type == DEC:
                 declarations.extend(self.var_declaration_list())
             # elif self.check_function():
@@ -39,7 +41,12 @@ class Parser(object):
         self.eat(ID)
         return self.current_token.type == LPAREN
 
-    def include_functions(self):
+    def import_function(self):
+        """
+        import_function             : ID<'use'> ID (COMMA ID)*
+
+        :return:
+        """
         built_in_functions = []
         self.eat(USE)
         # TODO: Check if function exists
@@ -86,7 +93,6 @@ class Parser(object):
             if self.current_token.type == COMMA:
                 self.eat(COMMA)
 
-
         return params
 
     def statement_list(self):
@@ -94,9 +100,11 @@ class Parser(object):
 
         return statements
 
-
     def var_declaration_list(self):
-
+        """
+        var_declaration_list        : variable COLON type_spec var_initialization SEMICOLON
+        :return:
+        """
         declarations = []
 
         self.eat(DEC)
@@ -110,30 +118,57 @@ class Parser(object):
 
         declarations.append(VarDecl(type_node, var_node))
 
-        if self.current_token.type == ASSIGN:
-            self.eat(ASSIGN)
-
-            # if type is int, then expr
-            # if type is boolean, than bool_expr
-            # if type is string, than string_expr
-
-            if self.current_token.type == INTEGER:
-                # TODO: check if var is declared as integer
-                declarations.append(Assign(var_node, self.expr()))
-
-            elif self.current_token.type == FLOAT:
-                # TODO: check if var is declared as float
-                declarations.append(Assign(var_node, self.expr()))
-
-            elif self.current_token.type == STRING:
-                # TODO: check if var is declared as string
-                declarations.append(Assign(var_node, self.string_expr()))
+        declarations.extend(self.var_initialization(var_node, type_node))
 
         self.eat(SEMICOLON)
 
         return declarations
 
+    def var_initialization(self, var_node, type_node):
+        """
+        var_initialization          : (ASSIGN (expr | string_expr | bool_expr))?
+
+        :param var_node:
+        :return:
+        """
+        declarations = []
+        if self.current_token.type == ASSIGN:
+            self.eat(ASSIGN)
+
+            # TODO: Maybe should do check in node visitor?
+            # if type is int, then expr
+            # if type is boolean, than bool_expr
+            # if type is string, than string_expr
+            if type_node.type == 'int':
+                # TODO: check if var is declared as integer
+                declarations.append(Assign(var_node, self.expr()))
+
+            elif type_node.type == 'float':
+                # TODO: check if var is declared as float
+                declarations.append(Assign(var_node, self.expr()))
+
+            elif type_node.type == 'string':
+                # TODO: check if var is declared as string
+                declarations.append(Assign(var_node, self.string_expr()))
+
+            elif type_node.type == 'boolean':
+                # TODO: check if var is declared as string
+                declarations.append(Assign(var_node, self.bool_expr()))
+
+        return declarations
+
     def factor(self):
+        """
+        factor              : PLUS factor
+                            | MINUS factor
+                            | INT_NUMBER
+                            | FLOAT_NUMBER
+                            | LPAREN expr RPAREN
+                            | variable
+                            | function_call
+
+        :return:
+        """
         token = self.current_token
 
         if token.type == INTEGER:
@@ -147,8 +182,16 @@ class Parser(object):
             node = self.expr()
             self.eat(RPAREN)
             return node
+        elif token.type == ID:
+            self.eat(ID)
+            return Var(token.value)
 
     def term(self):
+        """
+        term                        : factor ((MUL | DIV | REAL_DIV | MOD) factor)*
+
+        :return:
+        """
         node = self.factor()
 
         while self.current_token.type in (MUL, DIV):
@@ -165,7 +208,11 @@ class Parser(object):
         return node
 
     def expr(self):
+        """
+        expr                        : term ((PLUS | MINUS) term)*
 
+        :return:
+        """
         node = self.term()
 
         while self.current_token.type in (PLUS, MINUS):
@@ -182,12 +229,25 @@ class Parser(object):
         return node
 
     def string_term(self):
-        token = self.current_token
+        """
+        string_term                 : STRING | variable | function_call
 
-        self.eat(STRING)
-        return String(token)
+        :return:
+        """
+        token = self.current_token
+        if token.type == STRING:
+            self.eat(STRING)
+            return String(token)
+        elif token.type == ID:
+            self.eat(ID)
+            return Var(token)
 
     def string_expr(self):
+        """
+        string_expr                 : string_term (DOT string_term)*
+
+        :return:
+        """
         node = self.string_term()
         while self.current_token.type == DOT:
             self.eat(DOT)
@@ -195,5 +255,53 @@ class Parser(object):
             node = ConcatStr(left=node, right=self.string_expr())
         return node
 
+    def bool_expr(self):
+        """
+        bool_expr                   : bool_simple_expr | bool_complex_expr
+
+        :return:
+        """
+        if self.current_token.type == INTEGER:
+            return self.bool_simple_expr()
+        else:
+            return self.bool_complex_expr()
+
+    def bool_simple_expr(self):
+        """
+        bool_simple_expr            : expr comparision_operation expr (comparision_operation expr)*
+
+        :return:
+        """
+        node = self.expr()
+
+        token = self.current_token
+        if token.type in (LESS, LESS_EQ, GREATER, GREATER_EQ, EQUAL, NOT_EQUAL):
+            self.eat(token.type)
+        else:
+            self.error()
+
+        node = ComparationOp(left=node, op=token, right=self.expr())
+
+        return node
+
+    def bool_complex_expr(self):
+        """
+        bool_complex_expr           : logic_unar_operation? LPAREN bool_simple_expr RPAREN
+                                        (logic_operation logic_unar_operation? LPAREN bool_simple_expr RPAREN)*
+
+        :return:
+        """
+        if self.current_token.type == NOT:
+            un_token = self.current_token
+            self.eat(LPAREN)
+            node = self.bool_simple_expr()
+            self.eat(RPAREN)
+
+
+            node = UnOp(un_token, node)
+
+
+        return None
+
     def parse(self):
-       return self.program()
+        return self.program()

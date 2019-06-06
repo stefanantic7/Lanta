@@ -51,12 +51,22 @@ class Stmts(AST):
     def __init__(self, stmts):
         self.stmts = stmts
 
-
 class BinOp(AST):
     def __init__(self, left, op, right):
         self.left = left
         self.token = self.op = op
         self.right = right
+
+class ComparationOp(BinOp):
+    pass
+
+class LogicOp(BinOp):
+    pass
+
+class UnOp(AST):
+    def __init__(self, token, bool_expr):
+        self.token = token
+        self.bool_expr = bool_expr
 
 class Num(AST):
     def __init__(self, token):

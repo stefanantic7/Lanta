@@ -1,6 +1,9 @@
 from interpreter.lexical_analysis.token import Token
 from interpreter.lexical_analysis.tokenType import *
 
+# term | token type
+# 123 => integer
+# int => type
 
 class Lexer(object):
     def __init__(self, text):
@@ -68,6 +71,8 @@ class Lexer(object):
         elif result == 'string':
             return Token(TYPE, result)
         elif result == 'float':
+            return Token(TYPE, result)
+        elif result == 'boolean':
             return Token(TYPE, result)
         elif result == 'use':
             return Token(USE, result)
@@ -172,8 +177,8 @@ class Lexer(object):
                 self.advance()
                 if self.current_char == '=':
                     self.advance()
-                    return Token(GREATHER_EQ, '>=')
-                return Token(GREATHER, '>')
+                    return Token(GREATER_EQ, '>=')
+                return Token(GREATER, '>')
 
             if self.current_char == '=':
                 self.advance()
@@ -187,7 +192,7 @@ class Lexer(object):
                 if self.current_char == '=':
                     self.advance()
                     return Token(NOT_EQUAL, '!=')
-                self.error()
+                return Token(NOT, '!')
 
             self.error()
 

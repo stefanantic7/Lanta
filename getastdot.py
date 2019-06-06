@@ -132,6 +132,20 @@ class ASTVisualizer(NodeVisitor):
         s = 'node{} -> node{}\n'.format(node.num, node.right.num)
         self.dot_body.append(s)
 
+    def visit_ComparationOp(self, node):
+        s = 'node{} [label="{}"]\n'.format(self.nodecount, node.op)
+        node.num = self.nodecount
+        self.nodecount += 1
+        self.dot_body.append(s)
+
+        self.visit(node.left)
+        s = 'node{} -> node{}\n'.format(node.num, node.left.num)
+        self.dot_body.append(s)
+
+        self.visit(node.right)
+        s = 'node{} -> node{}\n'.format(node.num, node.right.num)
+        self.dot_body.append(s)
+
     def visit_Num(self, node):
         s = 'node{} [label="{}"]\n'.format(self.nodecount, node.value)
         node.num = self.nodecount

@@ -41,9 +41,12 @@ function_type_spec          : (int | float | string | array | boolean | do)
 
 variable                    : DOLLAR ID
 
-bool_expr                   : logic_unar_operation? bool
+bool_complex_expr           : logic_unar_operation? LPAREN bool_simple_expr RPAREN
+                                (logic_operation logic_unar_operation? LPAREN bool_simple_expr RPAREN)*
 
-bool                        : expr ((comparision_operation | logic_unar_operation?logic_operation) expr)*
+bool_simple_expr            : expr comparision_operation expr (comparision_operation expr)*
+
+bool_expr                   : bool_simple_expr | bool_complex_expr
 
 comparision_operation       : (LT | GT | LE | GE | EQ | NEQ)
 
@@ -53,7 +56,9 @@ logic_unar_operation        : NOT
 
 expr                        : term ((PLUS | MINUS) term)*
 
-string_expr                 : STRING (DOT STRING)*
+string_expr                 : string_term (DOT string_term)*
+
+string_term                 : STRING | variable | function_call
 
 term                        : factor ((MUL | DIV | REAL_DIV | MOD) factor)*
 
