@@ -11,22 +11,18 @@ parameters                  : empty
 
 param                       : variable COLON type_spec
 
-function_body               : LBRACKET statement_list* return_statement? RBRACKET
+function_body               : LBRACKET statement_list* RBRACKET
 
 var_declaration_list        : ID<'dec'> variable COLON type_spec var_initialization SEMICOLON
 
 var_initialization          : (ASSIGN (expr | string_expr | bool_expr))?
 
 statement_list              : var_declaration_list
-							| statement
-
-statement                   : assignment_statement
 							| function_call SEMICOLON
 							| condition_statement
 							| loop_condition
+							| return_statement
 							| empty
-
-assignment_statement        : variable ASSIGN (expr | string_expr | bool_expr) SEMICOLON
 
 return_statement            : RETURN (expr| string_expr | bool_expr) SEMICOLON
 
@@ -69,4 +65,4 @@ factor                      : PLUS factor
 							| variable
 							| function_call
 
-function_call               : AT ID LPAREN (expr | string_expr | bool_expr)? (COMMA expr | COMMA string_expr | bool_expr)* RPAREN
+function_call               : AT ID LPAREN (variable | function_call)? (COMMA (variable | function_call))* RPAREN

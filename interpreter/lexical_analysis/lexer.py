@@ -74,11 +74,21 @@ class Lexer(object):
             return Token(TYPE, result)
         elif result == 'boolean':
             return Token(TYPE, result)
+        elif result == 'array':
+            return Token(TYPE, result)
+        elif result == 'do':
+            return Token(TYPE, result)
         elif result == 'use':
             return Token(USE, result)
         elif result == 'dec':
             return Token(DEC, result)
         elif result == 'decfun':
+            return Token(DECFUN, result)
+        elif result == 'cond':
+            return Token(DECFUN, result)
+        elif result == 'loond':
+            return Token(DECFUN, result)
+        elif result == 'return':
             return Token(DECFUN, result)
         else:
             return Token(ID, result)

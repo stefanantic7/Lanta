@@ -25,19 +25,13 @@ class Parser(object):
         """
         declarations = []
 
-        while self.current_token.type in [USE, DEC]:
+        while self.current_token.type is not EOF:
             if self.current_token.type == USE:
                 declarations.extend(self.import_function())
             elif self.current_token.type == DECFUN:
-                pass
+                declarations.append(self.function_declaration())
             else:
                 declarations.extend(self.statement_list())
-            # elif self.current_token.type == DEC:
-            #     declarations.extend(self.var_declaration_list())
-            # elif self.check_function():
-            #     declarations.append(self.function_declarations())
-            # else:
-            #     declarations.extend(self.var_declaration_list())
 
         return Program(declarations)
 
@@ -47,6 +41,14 @@ class Parser(object):
         self.eat(ID)
         return self.current_token.type == LPAREN
 
+    @restorable
+    def is_bool_expr(self):
+        it_is = False
+        while self.current_token.type != SEMICOLON:
+            if self.current_token.type in (LESS, LESS_EQ, GREATER, GREATER_EQ, EQUAL, NOT_EQUAL):
+                it_is = True
+                break
+        return it_is
     def import_function(self):
         """
         import_function             : ID<'use'> ID (COMMA ID)*
@@ -67,32 +69,55 @@ class Parser(object):
 
         return built_in_functions
 
-    def function_declarations(self):
-        type_node = Type(self.current_token.value)
-        self.eat(TYPE)
+    def function_declaration(self):
+        """
+        function_declaration        : ID<'decfun'> ID LPAREN parameters RPAREN COLON function_type_spec function_body
+        function_type_spec          : (int | float | string | array | boolean | do)
+        function_body               : LBRACKET statement_list* RBRACKET
+
+        :return:
+        """
+        self.eat(DECFUN)
 
         fun_name = self.current_token.value
         self.eat(ID)
 
         self.eat(LPAREN)
-        args_node = Args(self.argument_list())
+        parameters_node = Args(self.parameters())
         self.eat(RPAREN)
+
+        self.eat(COLON)
+
+        type_node = Type(self.current_token.value)
+        self.eat(TYPE)
 
         self.eat(LBRACKET)
         stmts_node = Stmts(self.statement_list())
         self.eat(RBRACKET)
 
-        return FunDecl(type_node=type_node, fun_name=fun_name, args_node=args_node, stmts_node=stmts_node)
+        return FunDecl(type_node=type_node, fun_name=fun_name, args_node=parameters_node, stmts_node=stmts_node)
 
-    def argument_list(self):
+    def parameters(self):
+        """
+        parameters                  : empty
+                                    | param (COMMA param)*
+
+        param                       : variable COLON type_spec
+        variable                    : DOLLAR ID
+        type_spec                   : (int | float | string | array | boolean)
+
+        :return:
+        """
         params = []
 
         while self.current_token.type != RPAREN:
+            # TODO: Should start with DOLLAR sign
+            var_name = self.current_token.value
+            self.eat(ID)
+            self.eat(COLON)
             type_node = Type(self.current_token.value)
             self.eat(TYPE)
-
-            var_node = Var(self.current_token.value)
-            self.eat(ID)
+            var_node = Var(var_name)
 
             params.append(VarDecl(type_node, var_node))
 
@@ -104,18 +129,50 @@ class Parser(object):
     def statement_list(self):
         """
         statement_list              : var_declaration_list
-                                    | statement
+                                    | function_call SEMICOLON
+                                    | condition_statement
+                                    | loop_condition
+                                    | return_statement
+                                    | empty
+
         :return:
         """
         statements = []
         if self.current_token.type == DEC:
             statements.extend(self.var_declaration_list())
+        elif self.current_token.type == COND:
+            # TODO
+            statements.append(self.condition_statement())
+        elif self.current_token.type == LOOND:
+            # TODO
+            statements.append(self.loop_condition())
+        elif self.current_token.type == RETURN:
+            # TODO
+            statements.append(self.return_statement())
 
         return statements
+
+    def condition_statement(self):
+        node = None
+
+        return node
+
+    def loop_condition(self):
+        node = None
+
+        return node
+
+    def return_statement(self):
+        node = None
+
+        return Node
 
     def var_declaration_list(self):
         """
         var_declaration_list        : ID<'dec'> variable COLON type_spec var_initialization SEMICOLON
+
+        variable                    : DOLLAR ID
+        type_spec                   : (int | float | string | array | boolean)
 
         :return:
         """
@@ -153,6 +210,7 @@ class Parser(object):
             # if type is int, then expr
             # if type is boolean, than bool_expr
             # if type is string, than string_expr
+
             if type_node.type == 'int':
                 # TODO: check if var is declared as integer
                 declarations.append(Assign(var_node, self.expr()))
