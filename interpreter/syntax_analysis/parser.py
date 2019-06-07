@@ -18,16 +18,22 @@ class Parser(object):
             self.error()
 
     def program(self):
+        """
+        program                     : declarations
+
+        declarations                : (import_function | function_declaration | statement_list)*
+        """
         declarations = []
-        """
-            (import_function | function_declaration | var_declaration_list | statement_list)*
-        """
 
         while self.current_token.type in [USE, DEC]:
             if self.current_token.type == USE:
                 declarations.extend(self.import_function())
-            elif self.current_token.type == DEC:
-                declarations.extend(self.var_declaration_list())
+            elif self.current_token.type == DECFUN:
+                pass
+            else:
+                declarations.extend(self.statement_list())
+            # elif self.current_token.type == DEC:
+            #     declarations.extend(self.var_declaration_list())
             # elif self.check_function():
             #     declarations.append(self.function_declarations())
             # else:
@@ -96,13 +102,21 @@ class Parser(object):
         return params
 
     def statement_list(self):
+        """
+        statement_list              : var_declaration_list
+                                    | statement
+        :return:
+        """
         statements = []
+        if self.current_token.type == DEC:
+            statements.extend(self.var_declaration_list())
 
         return statements
 
     def var_declaration_list(self):
         """
-        var_declaration_list        : variable COLON type_spec var_initialization SEMICOLON
+        var_declaration_list        : ID<'dec'> variable COLON type_spec var_initialization SEMICOLON
+
         :return:
         """
         declarations = []
@@ -293,15 +307,38 @@ class Parser(object):
         """
         if self.current_token.type == NOT:
             un_token = self.current_token
+            self.eat(NOT)
             self.eat(LPAREN)
             node = self.bool_simple_expr()
             self.eat(RPAREN)
 
-
             node = UnOp(un_token, node)
+        else:
+            self.eat(LPAREN)
+            node = self.bool_simple_expr()
+            self.eat(RPAREN)
 
+        while self.current_token.type in (AND, OR):
+            token = self.current_token
+            self.eat(self.current_token.type)
 
-        return None
+            if self.current_token.type == NOT:
+                un_token = self.current_token
+                self.eat(NOT)
+                self.eat(LPAREN)
+
+                node = BinOp(node, token, UnOp(un_token, self.bool_simple_expr()))
+
+                self.eat(RPAREN)
+
+            else:
+                self.eat(LPAREN)
+
+                node = BinOp(node, token, self.bool_simple_expr())
+
+                self.eat(RPAREN)
+
+        return node
 
     def parse(self):
         return self.program()

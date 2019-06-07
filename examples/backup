@@ -29,4 +29,11 @@ cond($pol == "f") {
 
 ##
 not(5+3 > 5+10) and not(1==1)
+dec $b_2: boolean = !(1<2) && (1<3);
+
+
+dec $a: int = 5+3*5;
+dec $slanina: string = " i slaninu";
+dec $stringic: string = "pera jede jaja".$slanina.", a voli i kupus";
+dec $b: float = 3.4+$a;
 ##

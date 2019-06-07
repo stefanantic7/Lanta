@@ -78,6 +78,8 @@ class Lexer(object):
             return Token(USE, result)
         elif result == 'dec':
             return Token(DEC, result)
+        elif result == 'decfun':
+            return Token(DECFUN, result)
         else:
             return Token(ID, result)
 
@@ -193,6 +195,18 @@ class Lexer(object):
                     self.advance()
                     return Token(NOT_EQUAL, '!=')
                 return Token(NOT, '!')
+
+            if self.current_char == '&':
+                self.advance()
+                if self.current_char == '&':
+                    self.advance()
+                    return Token(AND, '&&')
+
+            if self.current_char == '|':
+                self.advance()
+                if self.current_char == '|':
+                    self.advance()
+                    return Token(AND, '||')
 
             self.error()
 

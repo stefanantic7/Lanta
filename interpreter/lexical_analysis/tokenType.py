@@ -15,6 +15,7 @@ COLON = 'COLON'
 ASSIGN = 'ASSIGN'
 COMMA = 'COMMA'
 DEC = 'DEC'
+DECFUN = 'DECFUN'
 
 #var types:
 STRING = 'STRING'
@@ -25,3 +26,7 @@ APOSTROPHE = 'APOSTROPHE'
 
 #unar operations:
 NOT = 'NOT'
+
+#Logic operations:
+AND = 'AND'
+OR = 'OR'

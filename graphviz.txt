@@ -13,7 +13,7 @@ param                       : variable COLON type_spec
 
 function_body               : LBRACKET statement_list* return_statement? RBRACKET
 
-var_declaration_list        : variable COLON type_spec var_initialization SEMICOLON
+var_declaration_list        : ID<'dec'> variable COLON type_spec var_initialization SEMICOLON
 
 var_initialization          : (ASSIGN (expr | string_expr | bool_expr))?
 
