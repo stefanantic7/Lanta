@@ -2,7 +2,6 @@ from interpreter.lexical_analysis.tokenType import *
 from interpreter.syntax_analysis.interpreter import *
 from interpreter.syntax_analysis.util import restorable
 
-
 class Parser(object):
     def __init__(self, lexer):
         self.lexer = lexer
@@ -35,20 +34,6 @@ class Parser(object):
 
         return Program(declarations)
 
-    @restorable
-    def check_function(self):
-        self.eat(TYPE)
-        self.eat(ID)
-        return self.current_token.type == LPAREN
-
-    @restorable
-    def is_bool_expr(self):
-        it_is = False
-        while self.current_token.type != SEMICOLON:
-            if self.current_token.type in (LESS, LESS_EQ, GREATER, GREATER_EQ, EQUAL, NOT_EQUAL):
-                it_is = True
-                break
-        return it_is
     def import_function(self):
         """
         import_function             : ID<'use'> ID (COMMA ID)*
@@ -91,10 +76,13 @@ class Parser(object):
         type_node = Type(self.current_token.value)
         self.eat(TYPE)
 
+        statements = []
         self.eat(LBRACKET)
-        stmts_node = Stmts(self.statement_list())
+        while self.current_token.type != RBRACKET:
+            statements.extend(self.statement_list())
         self.eat(RBRACKET)
 
+        stmts_node = Stmts(statements)
         return FunDecl(type_node=type_node, fun_name=fun_name, args_node=parameters_node, stmts_node=stmts_node)
 
     def parameters(self):
@@ -141,31 +129,54 @@ class Parser(object):
         if self.current_token.type == DEC:
             statements.extend(self.var_declaration_list())
         elif self.current_token.type == COND:
-            # TODO
             statements.append(self.condition_statement())
         elif self.current_token.type == LOOND:
-            # TODO
             statements.append(self.loop_condition())
         elif self.current_token.type == RETURN:
-            # TODO
             statements.append(self.return_statement())
 
         return statements
 
     def condition_statement(self):
-        node = None
+        self.eat(COND)
+        self.eat(LPAREN)
+        node = self.bool_expr()
+        self.eat(RPAREN)
+        self.eat(LBRACKET)
+
+        statements = []
+        while self.current_token.type != RBRACKET:
+            statements.extend(self.statement_list())
+
+        node = Condition(node, Stmts(statements))
+        self.eat(RBRACKET)
 
         return node
 
     def loop_condition(self):
-        node = None
+        self.eat(LOOND)
+        self.eat(LPAREN)
+        node = self.bool_expr()
+        self.eat(RPAREN)
+        self.eat(LBRACKET)
+
+        statements = []
+        while self.current_token.type != RBRACKET:
+            statements.extend(self.statement_list())
+
+        node = LoopCondition(node, Stmts(statements))
+        self.eat(RBRACKET)
 
         return node
 
     def return_statement(self):
-        node = None
+        self.eat(RETURN)
+        var_node = Var(self.current_token.value)
+        self.eat(ID)
+        self.eat(SEMICOLON)
+        node = Return(var_node)
 
-        return Node
+        return node
 
     def var_declaration_list(self):
         """

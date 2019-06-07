@@ -85,11 +85,11 @@ class Lexer(object):
         elif result == 'decfun':
             return Token(DECFUN, result)
         elif result == 'cond':
-            return Token(DECFUN, result)
+            return Token(COND, result)
         elif result == 'loond':
-            return Token(DECFUN, result)
+            return Token(LOOND, result)
         elif result == 'return':
-            return Token(DECFUN, result)
+            return Token(RETURN, result)
         else:
             return Token(ID, result)
 

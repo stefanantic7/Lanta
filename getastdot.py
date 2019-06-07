@@ -84,6 +84,16 @@ class ASTVisualizer(NodeVisitor):
         s = 'node{} -> node{}\n'.format(node.num, node.stmts_node.num)
         self.dot_body.append(s)
 
+    def visit_Return(self, node):
+        s = 'node{} [label="Return"]\n'.format(self.nodecount)
+        node.num = self.nodecount
+        self.nodecount += 1
+        self.dot_body.append(s)
+
+        self.visit(node.var)
+        s = 'node{} -> node{}\n'.format(node.num, node.var.num)
+        self.dot_body.append(s)
+
     def visit_Args(self, node):
         s = 'node{} [label="Args"]\n'.format(self.nodecount)
         node.num = self.nodecount
@@ -140,6 +150,34 @@ class ASTVisualizer(NodeVisitor):
 
         self.visit(node.bool_expr)
         s = 'node{} -> node{}\n'.format(node.num, node.bool_expr.num)
+        self.dot_body.append(s)
+
+    def visit_Condition(self, node):
+        s = 'node{} [label="Cond"]\n'.format(self.nodecount)
+        node.num = self.nodecount
+        self.nodecount += 1
+        self.dot_body.append(s)
+
+        self.visit(node.condition_bool)
+        s = 'node{} -> node{}\n'.format(node.num, node.condition_bool.num)
+        self.dot_body.append(s)
+
+        self.visit(node.stmts_node)
+        s = 'node{} -> node{}\n'.format(node.num, node.stmts_node.num)
+        self.dot_body.append(s)
+
+    def visit_LoopCondition(self, node):
+        s = 'node{} [label="Loond"]\n'.format(self.nodecount)
+        node.num = self.nodecount
+        self.nodecount += 1
+        self.dot_body.append(s)
+
+        self.visit(node.condition_bool)
+        s = 'node{} -> node{}\n'.format(node.num, node.condition_bool.num)
+        self.dot_body.append(s)
+
+        self.visit(node.stmts_node)
+        s = 'node{} -> node{}\n'.format(node.num, node.stmts_node.num)
         self.dot_body.append(s)
 
     def visit_ComparationOp(self, node):

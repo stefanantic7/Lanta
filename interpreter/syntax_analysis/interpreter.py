@@ -22,6 +22,10 @@ class FunDecl(AST):
         self.args_node = args_node
         self.stmts_node = stmts_node
 
+class Return(AST):
+    def __init__(self, var):
+        self.var = var
+
 class Type(AST):
     def __init__(self, type):
         self.type = type
@@ -67,6 +71,14 @@ class UnOp(AST):
     def __init__(self, token, bool_expr):
         self.token = token
         self.bool_expr = bool_expr
+
+class Condition(AST):
+    def __init__(self, condition_bool, stmts_node):
+        self.condition_bool = condition_bool
+        self.stmts_node = stmts_node
+
+class LoopCondition(Condition):
+    pass
 
 class Num(AST):
     def __init__(self, token):

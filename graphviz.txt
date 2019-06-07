@@ -24,7 +24,7 @@ statement_list              : var_declaration_list
 							| return_statement
 							| empty
 
-return_statement            : RETURN (expr| string_expr | bool_expr) SEMICOLON
+return_statement            : RETURN variable SEMICOLON
 
 condition_statement         : ID<'cond'> LPAREN bool_expr RPAREN LBRACKET statement_list RBRACKET
 
@@ -65,4 +65,4 @@ factor                      : PLUS factor
 							| variable
 							| function_call
 
-function_call               : AT ID LPAREN (variable | function_call)? (COMMA (variable | function_call))* RPAREN
+function_call               : AT ID LPAREN (variable)? (COMMA (variable))* RPAREN
