@@ -128,6 +128,18 @@ class ASTVisualizer(NodeVisitor):
         self.nodecount += 1
         self.dot_body.append(s)
 
+    def visit_FunctionCall(self, node):
+        s = 'node{} [label="FunCall {}"]\n'.format(self.nodecount, node.fun_name)
+        node.num = self.nodecount
+        self.nodecount += 1
+        self.dot_body.append(s)
+
+        for child in node.arg_vars:
+            self.visit(child)
+            s = 'node{} -> node{}\n'.format(node.num, child.num)
+            self.dot_body.append(s)
+
+
     def visit_BinOp(self, node):
         s = 'node{} [label="{}"]\n'.format(self.nodecount, node.op)
         node.num = self.nodecount

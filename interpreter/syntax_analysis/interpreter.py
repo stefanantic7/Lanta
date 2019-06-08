@@ -34,6 +34,11 @@ class Var(AST):
     def __init__(self, var):
         self.var = var
 
+class FunctionCall(AST):
+    def __init__(self, fun_name, arg_vars):
+        self.fun_name = fun_name
+        self.arg_vars = arg_vars
+
 class VarDecl(AST):
     def __init__(self, type_node, var_node):
         self.type_node = type_node

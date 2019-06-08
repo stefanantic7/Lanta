@@ -126,7 +126,10 @@ class Parser(object):
         :return:
         """
         statements = []
-        if self.current_token.type == DEC:
+        if self.current_token.type == ID and self.current_token.value[0] == '@':
+            statements.append(self.function_call())
+            self.eat(SEMICOLON)
+        elif self.current_token.type == DEC:
             statements.extend(self.var_declaration_list())
         elif self.current_token.type == COND:
             statements.append(self.condition_statement())
@@ -136,6 +139,23 @@ class Parser(object):
             statements.append(self.return_statement())
 
         return statements
+
+    def function_call(self):
+        fun_name = self.current_token.value
+        self.eat(ID)
+        self.eat(LPAREN)
+        parameters = []
+        while self.current_token.type != RPAREN:
+            var_node = Var(self.current_token)
+            parameters.append(var_node)
+            self.eat(ID)
+
+            if self.current_token.type == COMMA:
+                self.eat(COMMA)
+
+        self.eat(RPAREN)
+
+        return FunctionCall(fun_name, parameters)
 
     def condition_statement(self):
         self.eat(COND)
@@ -201,7 +221,7 @@ class Parser(object):
         declarations.append(VarDecl(type_node, var_node))
 
         declarations.extend(self.var_initialization(var_node, type_node))
-
+        print(self.current_token)
         self.eat(SEMICOLON)
 
         return declarations
@@ -233,10 +253,12 @@ class Parser(object):
             elif type_node.type == 'string':
                 # TODO: check if var is declared as string
                 declarations.append(Assign(var_node, self.string_expr()))
-
-            elif type_node.type == 'boolean':
-                # TODO: check if var is declared as string
-                declarations.append(Assign(var_node, self.bool_expr()))
+            elif type_node.type == 'array':
+                # TODO: change expr
+                declarations.append(Assign(var_node, self.string_expr()))
+            # elif type_node.type == 'boolean':
+            #     # TODO: check if var is declared as string
+            #     declarations.append(Assign(var_node, self.bool_expr()))
 
         return declarations
 
@@ -266,8 +288,11 @@ class Parser(object):
             self.eat(RPAREN)
             return node
         elif token.type == ID:
-            self.eat(ID)
-            return Var(token.value)
+            if token.value[0] == '@':
+                return self.function_call()
+            else:
+                self.eat(ID)
+                return Var(token.value)
 
     def term(self):
         """
@@ -277,12 +302,10 @@ class Parser(object):
         """
         node = self.factor()
 
-        while self.current_token.type in (MUL, DIV):
+        while self.current_token.type in (MUL, DIV, REAL_DIV, MOD):
             token = self.current_token
-            if token.type == MUL:
-                self.eat(MUL)
-            elif token.type == DIV:
-                self.eat(DIV)
+            if token.type in (MUL, DIV, REAL_DIV, MOD):
+                self.eat(token.type)
             else:
                 self.error()
 
@@ -322,8 +345,11 @@ class Parser(object):
             self.eat(STRING)
             return String(token)
         elif token.type == ID:
-            self.eat(ID)
-            return Var(token)
+            if token.value[0] == '@':
+                return self.function_call()
+            else:
+                self.eat(ID)
+                return Var(token)
 
     def string_expr(self):
         """
@@ -344,7 +370,7 @@ class Parser(object):
 
         :return:
         """
-        if self.current_token.type == INTEGER:
+        if self.current_token.type == INTEGER or self.current_token.type == ID:
             return self.bool_simple_expr()
         else:
             return self.bool_complex_expr()

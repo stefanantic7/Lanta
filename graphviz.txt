@@ -30,16 +30,16 @@ condition_statement         : ID<'cond'> LPAREN bool_expr RPAREN LBRACKET statem
 
 loop_condition              : ID<'loond'> LPAREN bool_expr RPAREN LBRACKET statement_list RBRACKET
 
-type_spec                   : (int | float | string | array | boolean)
+type_spec                   : (int | float | string | array)
 
-function_type_spec          : (int | float | string | array | boolean | do)
+function_type_spec          : (int | float | string | array | do)
 
 variable                    : DOLLAR ID
 
 bool_complex_expr           : logic_unar_operation? LPAREN bool_simple_expr RPAREN
                                 (logic_operation logic_unar_operation? LPAREN bool_simple_expr RPAREN)*
 
-bool_simple_expr            : expr comparision_operation expr (comparision_operation expr)*
+bool_simple_expr            : expr comparision_operation expr
 
 bool_expr                   : bool_simple_expr | bool_complex_expr
 

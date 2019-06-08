@@ -41,18 +41,26 @@ class Lexer(object):
         string_value = '"'
         prev_char = '"'
         self.advance()
-        while self.current_char is not None and self.current_char != '"' and prev_char != "\\":
+        while self.current_char is not None and self.current_char != '"':
             string_value += self.current_char
             prev_char = self.current_char
             self.advance()
-        if self.current_char == '"' and prev_char != "\\":
-            string_value += self.current_char
-            self.advance()
+        # if self.current_char == '"' and prev_char != "\\":
+        string_value += self.current_char
+        self.advance()
 
         return Token(STRING, string_value)
 
     def variable(self):
         result = '$'
+        self.advance()
+        while self.current_char is not None and (self.current_char.isalnum() or self.current_char == '_'):
+            result += self.current_char
+            self.advance()
+        return Token(ID, result)
+
+    def function(self):
+        result = '@'
         self.advance()
         while self.current_char is not None and (self.current_char.isalnum() or self.current_char == '_'):
             result += self.current_char
@@ -121,6 +129,9 @@ class Lexer(object):
             if self.current_char == '$':
                 return self.variable()
 
+            if self.current_char == '@':
+                return self.function()
+
             if self.current_char == '"':
                 return self.string()
 
@@ -168,7 +179,15 @@ class Lexer(object):
 
             if self.current_char == '/':
                 self.advance()
-                return Token(DIV, '/')
+                if self.current_char == '/':
+                    self.advance()
+                    return Token(DIV, '//')
+
+                return Token(REAL_DIV, '/')
+
+            if self.current_char == '%':
+                self.advance()
+                return Token(MOD, '%')
 
             if self.current_char == '(':
                 self.advance()
