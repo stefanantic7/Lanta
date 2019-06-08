@@ -1,6 +1,6 @@
 use cget, cput;
 use cast_to;
-use str_length, str_char_at, str_is_alpha, str_is_digit, str_split, str_replace, str_to_upper;
+use str_length, str_char_at, str_is_alpha, str_is_digit, str_split, str_replace, str_to_upper, str_equals;
 use array_size, array_get;
 use file_read;
 
@@ -36,7 +36,8 @@ loond($index_kljucne_reci < @array_size($kljucne_reci)) {
 	dec $counter: int = 0;
 	dec $index_reci_teksta: int = 0;
 	loond($index_reci_teksta < @array_size($reci_teksta)) {
-		cond(@array_get($reci_teksta, $index_reci_teksta) == $rec) {
+		dec $rec_by_index: string = @array_get($reci_teksta, $index_reci_teksta);
+		cond(@str_equals($rec_by_index, $rec) == 1) {
 			dec $counter: int = $counter + 1;
 		}
 		dec $index_reci_teksta: int = $index_reci_teksta + 1;

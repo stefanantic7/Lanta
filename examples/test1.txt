@@ -1,49 +1,67 @@
 use cget, cput;
 use cast_to;
-use str_length, str_char_at, str_is_alpha, str_is_digit, str_split, str_replace, str_to_upper;
-use array_size, array_get;
-use file_read;
+use random;
+use array_init, array_append, array_size, array_get;
+use sqrt;
+use is_integer;
+use str_length, str_char_at, str_is_alpha, str_is_digit;
 
 dec $string_t: string = "string";
 dec $int_t: string = "int";
 
-dec $unesite_putanju_str: string = "Unesite putanju:";
+dec $unesite_rec: string = "Unesite rec:";
+dec $rec: string = @cget($unesite_rec);
+dec $index_1: int = 0;
+dec $index_2: int = 0;
+dec $index_space: int = 0;
+dec $row: string = "";
 
-dec $space_str: string = " ";
-dec $comma_str: string = ",";
+cond(@str_length($rec) % 2 == 0) {
+	dec $index_1: int = (@str_length($rec) // 2) - 1;
+	dec $index_2: int = $index_1 + 1;
 
-dec $file_path: string = @cget($unesite_putanju_str);
-dec $content: string = @file_read($file_path);
-dec $reci_teksta: array = @str_split($content, $space_str);
-
-dec $unesite_broj_reci_str: string = "Unesite broj reci:";
-dec $broj_reci_str: string = @cget($unesite_broj_reci_str);
-
-dec $broj_reci: int = @cast_to($broj_reci_str, $int_t);
-
-dec $unesite_kljucne_reci_str: string = "Unesite kljucne reci (odvojene zarezom): ";
-dec $kljucne_reci_str: string = @cget($unesite_kljucne_reci_str);
-
-dec $kljucne_reci: array = @str_split($kljucne_reci_str, $comma_str);
-dec $rec: string = "";
-dec $counter: int = 0;
-
-dec $index_kljucne_reci: int = 0;
-dec $index_reci_teksta: int = 0;
-
-loond($index_kljucne_reci < @array_size($kljucne_reci)) {
-	dec $rec: string = @array_get($kljucne_reci, $index_kljucne_reci);
-	dec $counter: int = 0;
-	dec $index_reci_teksta: int = 0;
-	loond($index_reci_teksta < @array_size($reci_teksta)) {
-		cond(@array_get($reci_teksta, $index_reci_teksta) == $rec) {
-			dec $counter: int = $counter + 1;
+	loond($index_1 >= 0) {
+		dec $index_space: int = 0;
+		dec $row: string = "";
+		loond($index_space < $index_1) {
+			dec $row: string = $row." ";
+			dec $index_space: int = $index_space + 1;
 		}
-		dec $index_reci_teksta: int = $index_reci_teksta + 1;
+
+		dec $row: string = $row.@str_char_at($rec, $index_1).@str_char_at($rec, $index_2);
+		@cput($row);
+
+		dec $index_1: int = $index_1 - 1;
+		dec $index_2: int = $index_2 + 1;
 	}
+}
 
-	dec $result_out: string = $rec.": ".@cast_to($counter, $string_t);
-	@cput($result_out);
+cond(@str_length($rec) % 2 != 0) {
+	dec $index_1: int = @str_length($rec) // 2;
+	dec $row: string = "";
+	dec $index_space: int = 0;
+	loond($index_space < $index_1) {
+		dec $row: string = $row." ";
+		dec $index_space: int = $index_space + 1;
+	}
+	dec $row: string = $row.@str_char_at($rec, $index_1);
+	@cput($row);
 
-	dec $index_kljucne_reci: int = $index_kljucne_reci + 1;
+	dec $index_1: int = $index_1 - 1;
+	dec $index_2: int = $index_1 + 1;
+
+	loond($index_1 >= 0) {
+		dec $index_space: int = 0;
+		dec $row: string = "";
+		loond($index_space < $index_1) {
+			dec $row: string = $row." ";
+			dec $index_space: int = $index_space + 1;
+		}
+
+		dec $row:string = $row.@str_char_at($rec, $index_1).@str_char_at($rec, $index_2);
+		@cput($row);
+
+		dec $index_1: int = $index_1 - 1;
+		dec $index_2: int = $index_2 + 1;
+	}
 }

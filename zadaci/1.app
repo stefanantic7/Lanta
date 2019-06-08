@@ -16,6 +16,7 @@ dec $visina: int = @cast_to($visina_str, $int);
 dec $idealna_kilaza: int = 0;
 
 dec $m: string = "m";
+
 dec $f: string = "f";
 
 cond(@str_equals($pol, $m) == 1) {
