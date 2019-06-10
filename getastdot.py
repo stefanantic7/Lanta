@@ -3,239 +3,348 @@ import textwrap
 
 from interpreter.lexical_analysis.lexer import Lexer
 from interpreter.lexical_analysis.tokenType import *
-from interpreter.syntax_analysis.interpreter import NodeVisitor
+from interpreter.syntax_analysis.interpreter import NodeVisitor, VarDecl, Assign, Stmts
 from interpreter.syntax_analysis.parser import Parser
 
 
 class ASTVisualizer(NodeVisitor):
+
     def __init__(self, parser):
+        self.num_tabs = 0
+
         self.parser = parser
         self.nodecount = 1
         self.dot_heder = [textwrap.dedent("""
-            digraph astgraph {
-                node [shape=box, fontsize=12, fontname="Courier", height=.1];
-                ranksep=.3;   
-                edge [arrowsize=.5]
+            ## Coded by Antole.
         """)]
         self.dot_body = []
-        self.dot_footer = ['}']
+        self.dot_footer = ['']
+
+        self.built_in_fun_map = {
+            'cput': 'print',
+            'cget': 'input'
+        }
+        self.comparison_op_map = {
+            '&&': 'and',
+            '||': 'or'
+        }
+    def increment_tabs(self):
+        self.num_tabs += 1
+
+    def decrement_tabs(self):
+        self.num_tabs -= 1
+
+    def generate_tabs(self):
+        tabs = ''
+        for i in range(self.num_tabs):
+            tabs = tabs + '\t'
+        return tabs
 
     def visit_Program(self, node):
-        s = 'node{} [label="Program"]\n'.format(self.nodecount)
         node.num = self.nodecount
         self.nodecount += 1
-        self.dot_body.append(s)
 
         for child in node.children:
-            print('child')
             self.visit(child)
-            s = 'node{} -> node{}\n'.format(node.num, child.num)
-            self.dot_body.append(s)
 
     def visit_BuiltInFunction(self, node):
-        s = 'node{} [label="BuitInFunction: {}"]\n'.format(self.nodecount, node.function)
-        node.num = self.nodecount
-        self.nodecount += 1
+        s = '# BuitInFunction: {}\n'.format(node.function)
         self.dot_body.append(s)
+
+        if node.function == 'str_equals':
+            s = """
+def str_equals(s1, s2):
+    return int(s1 == s2)
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'cast_to':
+            s = """
+def cast_to(var, type):
+	if type == 'int':
+	    return int(var)
+	elif type == 'string':
+		return str(var)
+	return None
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'random':
+            s = """
+import random as random_b
+def random(arg_from, arg_to):
+    return random_b.randrange(arg_from, arg_to)
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'array_init':
+            s = """
+def array_init():
+    return []
+"""
+            self.dot_body.append(s)
+        elif node.function == 'sqrt':
+            s =  """
+import math
+def sqrt(value):
+    return math.sqrt(value)
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'is_integer':
+            s = """
+def is_integer(value):
+    if float.is_integer(value):
+        return 1
+    return 0
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'array_append':
+            s = """
+def array_append(array, value):
+    array.append(value)
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'array_size':
+            s = """
+def array_size(array):
+    return len(array)
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'array_get':
+            s = """
+def array_get(array, index):
+    return array[index]
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'str_char_at':
+            s = """
+def str_char_at(value, index):
+    return value[index]
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'str_length':
+            s = """
+def str_length(value):
+    return len(value)
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'str_is_alpha':
+            s = """
+def str_is_alpha(value):
+    return value.isalpha()
+"""
+            self.dot_body.append(s)
+        elif node.function == 'str_is_digit':
+            s = """
+def str_is_digit(value):
+    return value.isdigit()
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'str_to_upper':
+            s = """
+def str_to_upper(value):
+    return value.upper()
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'file_read':
+            s = """
+def file_read(file_path):
+    file = open(file_path)
+    content = file.read()
+    file.close()
+    return content
+"""
+            self.dot_body.append(s)
+
+        elif node.function == 'str_split':
+            s = """
+def str_split(content, delimiter):
+    return content.split(delimiter)
+"""
+            self.dot_body.append(s)
 
     def visit_VarDecl(self, node):
-        s = 'node{} [label="VarDecl"]\n'.format(self.nodecount)
         node.num = self.nodecount
         self.nodecount += 1
-        self.dot_body.append(s)
 
         self.visit(node.type_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.type_node.num)
-        self.dot_body.append(s)
 
         self.visit(node.var_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.var_node.num)
-        self.dot_body.append(s)
 
     def visit_Assign(self, node):
-        s = 'node{} [label="Assign"]\n'.format(self.nodecount)
         node.num = self.nodecount
         self.nodecount += 1
-        self.dot_body.append(s)
 
-        self.visit(node.var_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.var_node.num)
+        s = '='
         self.dot_body.append(s)
 
         self.visit(node.expr)
-        s = 'node{} -> node{}\n'.format(node.num, node.expr.num)
-        self.dot_body.append(s)
 
     def visit_FunDecl(self, node):
-        s = 'node{} [label="FunDecl: {}"]\n'.format(self.nodecount, node.fun_name)
-        node.num = self.nodecount
-        self.nodecount += 1
+        s = 'def {}('.format(node.fun_name)
         self.dot_body.append(s)
-
-        self.visit(node.type_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.type_node.num)
-        self.dot_body.append(s)
-
         self.visit(node.args_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.args_node.num)
+
+        s = '):\n'
         self.dot_body.append(s)
+        self.increment_tabs()
 
         self.visit(node.stmts_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.stmts_node.num)
-        self.dot_body.append(s)
+
+        self.decrement_tabs()
+
 
     def visit_Return(self, node):
-        s = 'node{} [label="Return"]\n'.format(self.nodecount)
-        node.num = self.nodecount
-        self.nodecount += 1
+        s = 'return '.format(self.nodecount)
         self.dot_body.append(s)
 
         self.visit(node.var)
-        s = 'node{} -> node{}\n'.format(node.num, node.var.num)
-        self.dot_body.append(s)
 
     def visit_Args(self, node):
-        s = 'node{} [label="Args"]\n'.format(self.nodecount)
-        node.num = self.nodecount
-        self.nodecount += 1
-        self.dot_body.append(s)
-
         for child in node.args:
             self.visit(child)
-            s = 'node{} -> node{}\n'.format(node.num, child.num)
-            self.dot_body.append(s)
+            if child != node.args[-1]:
+                self.dot_body.append(', ')
 
     def visit_Stmts(self, node):
-        s = 'node{} [label="Stmts"]\n'.format(self.nodecount)
-        node.num = self.nodecount
-        self.nodecount += 1
-        self.dot_body.append(s)
-
         for child in node.stmts:
+            if not isinstance(child, Assign) and not isinstance(child, Stmts):
+                self.dot_body.append(self.generate_tabs())
+
             self.visit(child)
-            s = 'node{} -> node{}\n'.format(node.num, child.num)
-            self.dot_body.append(s)
+
+            if not isinstance(child, VarDecl) and not isinstance(child, Stmts):
+                self.dot_body.append('\n')
 
     def visit_Type(self, node):
-        s = 'node{} [label="Type: {}"]\n'.format(self.nodecount, node.type)
         node.num = self.nodecount
         self.nodecount += 1
-        self.dot_body.append(s)
 
     def visit_Var(self, node):
-        s = 'node{} [label="Var: {}"]\n'.format(self.nodecount, node.var)
+        s = node.var[1:]
         node.num = self.nodecount
         self.nodecount += 1
         self.dot_body.append(s)
 
     def visit_FunctionCall(self, node):
-        s = 'node{} [label="FunCall {}"]\n'.format(self.nodecount, node.fun_name)
-        node.num = self.nodecount
-        self.nodecount += 1
+
+        fun_name = node.fun_name[1:]
+        if fun_name in self.built_in_fun_map:
+            fun_name = self.built_in_fun_map[fun_name]
+
+        s = '{}('.format(fun_name)
         self.dot_body.append(s)
 
         for child in node.arg_vars:
             self.visit(child)
-            s = 'node{} -> node{}\n'.format(node.num, child.num)
-            self.dot_body.append(s)
+            if child != node.arg_vars[-1]:
+                s = ', '
+                self.dot_body.append(s)
+
+        s = ')'
+        self.dot_body.append(s)
 
 
     def visit_BinOp(self, node):
-        s = 'node{} [label="{}"]\n'.format(self.nodecount, node.op)
         node.num = self.nodecount
         self.nodecount += 1
-        self.dot_body.append(s)
+
+        self.dot_body.append('(')
 
         self.visit(node.left)
-        s = 'node{} -> node{}\n'.format(node.num, node.left.num)
+
+        s = node.op.value
+        if s in self.comparison_op_map:
+            s = self.comparison_op_map[s]
         self.dot_body.append(s)
 
         self.visit(node.right)
-        s = 'node{} -> node{}\n'.format(node.num, node.right.num)
-        self.dot_body.append(s)
+
+        self.dot_body.append(')')
+
 
     def visit_UnOp(self, node):
-        s = 'node{} [label="{}"]\n'.format(self.nodecount, node.token.type)
-        node.num = self.nodecount
-        self.nodecount += 1
+        s = 'not' #TODO: get from map
         self.dot_body.append(s)
-
         self.visit(node.bool_expr)
-        s = 'node{} -> node{}\n'.format(node.num, node.bool_expr.num)
-        self.dot_body.append(s)
 
     def visit_Condition(self, node):
-        s = 'node{} [label="Cond"]\n'.format(self.nodecount)
-        node.num = self.nodecount
-        self.nodecount += 1
+        s = 'if '
         self.dot_body.append(s)
 
         self.visit(node.condition_bool)
-        s = 'node{} -> node{}\n'.format(node.num, node.condition_bool.num)
+
+        s = ':\n'
         self.dot_body.append(s)
+        self.increment_tabs()
 
         self.visit(node.stmts_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.stmts_node.num)
-        self.dot_body.append(s)
+
+        self.decrement_tabs()
 
     def visit_LoopCondition(self, node):
-        s = 'node{} [label="Loond"]\n'.format(self.nodecount)
-        node.num = self.nodecount
-        self.nodecount += 1
+        s = 'while '
         self.dot_body.append(s)
 
         self.visit(node.condition_bool)
-        s = 'node{} -> node{}\n'.format(node.num, node.condition_bool.num)
+
+        s = ':\n'
         self.dot_body.append(s)
+        self.increment_tabs()
 
         self.visit(node.stmts_node)
-        s = 'node{} -> node{}\n'.format(node.num, node.stmts_node.num)
-        self.dot_body.append(s)
+
+        self.decrement_tabs()
 
     def visit_ComparationOp(self, node):
-        s = 'node{} [label="{}"]\n'.format(self.nodecount, node.op)
-        node.num = self.nodecount
-        self.nodecount += 1
-        self.dot_body.append(s)
+        self.dot_body.append('(')
 
         self.visit(node.left)
-        s = 'node{} -> node{}\n'.format(node.num, node.left.num)
+
+        s = node.op.value
         self.dot_body.append(s)
 
         self.visit(node.right)
-        s = 'node{} -> node{}\n'.format(node.num, node.right.num)
-        self.dot_body.append(s)
+
+        self.dot_body.append(')')
+
 
     def visit_Num(self, node):
-        s = 'node{} [label="{}"]\n'.format(self.nodecount, node.value)
+        s = str(node.value)
         node.num = self.nodecount
         self.nodecount += 1
         self.dot_body.append(s)
 
     def visit_String(self, node):
-        s = 'node{} [label="{}"]\n'.format(self.nodecount, node.value)
+        s = node.value
         node.num = self.nodecount
         self.nodecount += 1
         self.dot_body.append(s)
 
     def visit_ConcatStr(self, node):
-        s = 'node{} [label="{}"]\n'.format(self.nodecount, '.')
         node.num = self.nodecount
         self.nodecount += 1
-        self.dot_body.append(s)
 
         self.visit(node.left)
-        s = 'node{} -> node{}\n'.format(node.num, node.left.num)
+
+        s = '+'
         self.dot_body.append(s)
 
         self.visit(node.right)
-        s = 'node{} -> node{}\n'.format(node.num, node.right.num)
-        self.dot_body.append(s)
 
     def genDot(self):
         tree = self.parser.parse()
-        print(tree)
         self.visit(tree)
+        print(self.dot_body)
         return ''.join(self.dot_heder + self.dot_body + self.dot_footer)
 
 

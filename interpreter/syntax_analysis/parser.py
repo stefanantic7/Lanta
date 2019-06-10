@@ -30,7 +30,7 @@ class Parser(object):
             elif self.current_token.type == DECFUN:
                 declarations.append(self.function_declaration())
             else:
-                declarations.extend(self.statement_list())
+                declarations.append(self.statement_list())
 
         return Program(declarations)
 
@@ -79,7 +79,7 @@ class Parser(object):
         statements = []
         self.eat(LBRACKET)
         while self.current_token.type != RBRACKET:
-            statements.extend(self.statement_list())
+            statements.append(self.statement_list())
         self.eat(RBRACKET)
 
         stmts_node = Stmts(statements)
@@ -138,7 +138,7 @@ class Parser(object):
         elif self.current_token.type == RETURN:
             statements.append(self.return_statement())
 
-        return statements
+        return Stmts(statements)
 
     def function_call(self):
         fun_name = self.current_token.value
@@ -146,7 +146,7 @@ class Parser(object):
         self.eat(LPAREN)
         parameters = []
         while self.current_token.type != RPAREN:
-            var_node = Var(self.current_token)
+            var_node = Var(self.current_token.value)
             parameters.append(var_node)
             self.eat(ID)
 
@@ -166,7 +166,7 @@ class Parser(object):
 
         statements = []
         while self.current_token.type != RBRACKET:
-            statements.extend(self.statement_list())
+            statements.append(self.statement_list())
 
         node = Condition(node, Stmts(statements))
         self.eat(RBRACKET)
@@ -182,7 +182,7 @@ class Parser(object):
 
         statements = []
         while self.current_token.type != RBRACKET:
-            statements.extend(self.statement_list())
+            statements.append(self.statement_list())
 
         node = LoopCondition(node, Stmts(statements))
         self.eat(RBRACKET)
@@ -221,7 +221,6 @@ class Parser(object):
         declarations.append(VarDecl(type_node, var_node))
 
         declarations.extend(self.var_initialization(var_node, type_node))
-        print(self.current_token)
         self.eat(SEMICOLON)
 
         return declarations
@@ -349,7 +348,7 @@ class Parser(object):
                 return self.function_call()
             else:
                 self.eat(ID)
-                return Var(token)
+                return Var(token.value)
 
     def string_expr(self):
         """

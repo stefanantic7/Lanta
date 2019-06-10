@@ -12,7 +12,7 @@ dec $pol: string = @cget($unesite_pol);
 dec $unesite_visinu: string = "Unesite Vasu visinu:";
 dec $visina_str: string = @cget($unesite_visinu);
 
-dec $visina: int = @cast_to($visina_str, $int);
+dec $visina: int = @cast_to($visina_str, $int_t);
 dec $idealna_kilaza: int = 0;
 
 dec $m: string = "m";
@@ -26,5 +26,5 @@ cond(@str_equals($pol, $f) == 1) {
    dec $idealna_kilaza: int = $visina - 120;
 }
 
-dec $result_str: string = "Vasa idealna kilaza je:".@cast_to($idealna_kilaza, string_t);
+dec $result_str: string = "Vasa idealna kilaza je:".@cast_to($idealna_kilaza, $string_t);
 @cput($result_str);

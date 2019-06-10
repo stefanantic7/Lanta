@@ -44,9 +44,6 @@ class VarDecl(AST):
         self.type_node = type_node
         self.var_node = var_node
 
-    def __repr__(self):
-        return "VarDecl node: type({}), var({})".format(self.type_node, self.var_node)
-
 class Assign(AST):
     def __init__(self, var_node, expr):
         self.var_node = var_node
