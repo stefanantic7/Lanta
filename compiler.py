@@ -5,6 +5,7 @@ from interpreter.lexical_analysis.lexer import Lexer
 from interpreter.lexical_analysis.tokenType import *
 from interpreter.syntax_analysis.interpreter import NodeVisitor, VarDecl, Assign, Stmts
 from interpreter.syntax_analysis.parser import Parser
+from built_in_fun_generator import built_in_impl_map
 
 
 class ASTVisualizer(NodeVisitor):
@@ -20,7 +21,7 @@ class ASTVisualizer(NodeVisitor):
         self.dot_body = []
         self.dot_footer = ['']
 
-        self.built_in_fun_map = {
+        self.py_built_in_fun_map = {
             'cput': 'print',
             'cget': 'input'
         }
@@ -48,129 +49,10 @@ class ASTVisualizer(NodeVisitor):
             self.visit(child)
 
     def visit_BuiltInFunction(self, node):
-        s = '# BuitInFunction: {}\n'.format(node.function)
-        self.dot_body.append(s)
+        if node.function in built_in_impl_map:
+            s = built_in_impl_map[node.function]
+            self.dot_heder.append(s)
 
-        if node.function == 'str_equals':
-            s = """
-def str_equals(s1, s2):
-    return int(s1 == s2)
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'cast_to':
-            s = """
-def cast_to(var, type):
-	if type == 'int':
-	    return int(var)
-	elif type == 'string':
-		return str(var)
-	return None
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'random':
-            s = """
-import random as random_b
-def random(arg_from, arg_to):
-    return random_b.randrange(arg_from, arg_to)
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'array_init':
-            s = """
-def array_init():
-    return []
-"""
-            self.dot_body.append(s)
-        elif node.function == 'sqrt':
-            s =  """
-import math
-def sqrt(value):
-    return math.sqrt(value)
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'is_integer':
-            s = """
-def is_integer(value):
-    if float.is_integer(value):
-        return 1
-    return 0
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'array_append':
-            s = """
-def array_append(array, value):
-    array.append(value)
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'array_size':
-            s = """
-def array_size(array):
-    return len(array)
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'array_get':
-            s = """
-def array_get(array, index):
-    return array[index]
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'str_char_at':
-            s = """
-def str_char_at(value, index):
-    return value[index]
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'str_length':
-            s = """
-def str_length(value):
-    return len(value)
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'str_is_alpha':
-            s = """
-def str_is_alpha(value):
-    return value.isalpha()
-"""
-            self.dot_body.append(s)
-        elif node.function == 'str_is_digit':
-            s = """
-def str_is_digit(value):
-    return value.isdigit()
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'str_to_upper':
-            s = """
-def str_to_upper(value):
-    return value.upper()
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'file_read':
-            s = """
-def file_read(file_path):
-    file = open(file_path)
-    content = file.read()
-    file.close()
-    return content
-"""
-            self.dot_body.append(s)
-
-        elif node.function == 'str_split':
-            s = """
-def str_split(content, delimiter):
-    return content.split(delimiter)
-"""
-            self.dot_body.append(s)
 
     def visit_VarDecl(self, node):
         node.num = self.nodecount
@@ -238,8 +120,8 @@ def str_split(content, delimiter):
     def visit_FunctionCall(self, node):
 
         fun_name = node.fun_name[1:]
-        if fun_name in self.built_in_fun_map:
-            fun_name = self.built_in_fun_map[fun_name]
+        if fun_name in self.py_built_in_fun_map:
+            fun_name = self.py_built_in_fun_map[fun_name]
 
         s = '{}('.format(fun_name)
         self.dot_body.append(s)
@@ -344,17 +226,17 @@ def str_split(content, delimiter):
     def genDot(self):
         tree = self.parser.parse()
         self.visit(tree)
-        print(self.dot_body)
         return ''.join(self.dot_heder + self.dot_body + self.dot_footer)
 
 
 def main():
-    # argparser = argparse.ArgumentParser()
-    # argparser.add_argument('fname')
-    # args = argparser.parse_args()
-    # fname = args.fname
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('fname')
+    args = argparser.parse_args()
+    fname = args.fname
 
-    fname = './examples/test1.txt'
+    # fname = './examples/test1.txt'
+
     text = open(fname, 'r').read()
 
     lexer = Lexer(text)
