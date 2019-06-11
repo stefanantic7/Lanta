@@ -29,8 +29,11 @@ class Lexer(object):
         else:
             self.current_char = self.text[self.pos]
 
-    def number(self):
+    def number(self, positive=True):
         number_value = ""
+        if not positive:
+            number_value = "-"
+
         while (self.current_char is not None and self.current_char.isdigit()):
             number_value += self.current_char
             self.advance()
@@ -131,6 +134,16 @@ class Lexer(object):
 
             if self.current_char.isdigit():
                 return self.number()
+
+            if self.current_char == '-':
+                self.advance()
+                if self.current_char.isdigit():
+                    return self.number(positive=False)
+
+            if self.current_char == '+':
+                self.advance()
+                if self.current_char.isdigit():
+                    return self.number(positive=True)
 
             #Ovo
             if self.current_char.isalpha():
@@ -246,6 +259,7 @@ class Lexer(object):
                 if self.current_char == '|':
                     self.advance()
                     return Token(AND, '||')
+
 
             self.error()
 
