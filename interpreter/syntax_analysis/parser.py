@@ -7,14 +7,15 @@ class Parser(object):
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
 
-    def error(self):
-        raise Exception('Greska u parsiranju')
+    def error(self, expected_token):
+        raise Exception('Parsing error. Current token ({}) is not valid. Expected token should be: {} '
+                        .format(self.current_token, expected_token))
 
     def eat(self, type):
         if self.current_token.type == type:
             self.current_token = self.lexer.get_next_token()
         else:
-            self.error()
+            self.error(type)
 
     def program(self):
         """
@@ -306,7 +307,7 @@ class Parser(object):
             if token.type in (MUL, DIV, REAL_DIV, MOD):
                 self.eat(token.type)
             else:
-                self.error()
+                self.error(' or '.join([MUL, DIV, REAL_DIV, MOD]))
 
             node = BinOp(left=node, op=token, right=self.factor())
 
@@ -327,7 +328,7 @@ class Parser(object):
             elif token.type == MINUS:
                 self.eat(MINUS)
             else:
-                self.error()
+                self.error(' or '.join([PLUS, MINUS]))
 
             node = BinOp(left=node, op=token, right=self.expr())
 
@@ -386,7 +387,7 @@ class Parser(object):
         if token.type in (LESS, LESS_EQ, GREATER, GREATER_EQ, EQUAL, NOT_EQUAL):
             self.eat(token.type)
         else:
-            self.error()
+            self.error(' or '.join([LESS, LESS_EQ, GREATER, GREATER_EQ, EQUAL, NOT_EQUAL]))
 
         node = ComparationOp(left=node, op=token, right=self.expr())
 

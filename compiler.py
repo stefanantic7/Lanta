@@ -47,11 +47,10 @@ class ASTVisualizer(NodeVisitor):
 
         return False
 
-    def get_var_type(self, var_name):
-        for scope in self.var_memory:
-            for variable in self.var_memory[scope]:
-                if var_name == variable['name']:
-                    return variable['type']
+    def get_var_type(self, var_name, scope):
+        for variable in self.var_memory[scope]:
+            if var_name == variable['name']:
+                return variable['type']
         return None
 
     def get_func_type(self, fun_name):
@@ -86,7 +85,7 @@ class ASTVisualizer(NodeVisitor):
         for i in range(len(self.function_memory[fun_name]['parameter_types'])):
             if self.function_memory[fun_name]['parameter_types'][i] == 'any':
                 continue
-            if self.function_memory[fun_name]['parameter_types'][i] != self.get_var_type(parameter_types[i].var):
+            if self.function_memory[fun_name]['parameter_types'][i] != self.get_var_type(parameter_types[i].var, self.current_scope):
                 return False
         return True
 
@@ -123,6 +122,8 @@ class ASTVisualizer(NodeVisitor):
             self.dot_heder.append(s)
 
     def visit_VarDecl(self, node):
+        print(node.var_node.var)
+        print(self.is_var_visible(node.var_node.var, self.current_scope))
         if not self.is_var_visible(node.var_node.var, self.current_scope):
             self.add_var_to_memory(node.var_node.var, node.type_node.type)
 
@@ -159,8 +160,8 @@ class ASTVisualizer(NodeVisitor):
     def visit_Return(self, node):
         if self.current_scope == 'main':
             raise Exception("Function should have return statement")
-        if self.get_func_type(self.current_scope) != self.get_var_type(node.var.var):
-            raise Exception("Return type should be {}, {} returned".format(self.get_func_type(self.current_scope), self.get_var_type(node.var.var)))
+        if self.get_func_type(self.current_scope) != self.get_var_type(node.var.var, self.current_scope):
+            raise Exception("Return type should be {}, {} returned".format(self.get_func_type(self.current_scope), self.get_var_type(node.var.var, self.current_scope)))
         s = 'return '.format(self.nodecount)
         self.dot_body.append(s)
 
@@ -315,7 +316,7 @@ def main():
     # args = argparser.parse_args()
     # fname = args.fname
 
-    fname = './zadaci/9.app'
+    fname = './zadaci/test.app'
 
     text = open(fname, 'r').read()
 
