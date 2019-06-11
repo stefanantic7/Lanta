@@ -9,6 +9,7 @@ class Lexer(object):
     def __init__(self, text):
         self.text = text
         self.pos = 0
+        self.line_counter = 1
         if len(text) > 0:
             self.current_char = self.text[self.pos]
         else:
@@ -16,6 +17,9 @@ class Lexer(object):
 
     def error(self):
         raise Exception('Neocekivani karakter {} '.format(self.current_char))
+
+    def new_line(self):
+        self.line_counter += 1
 
     def advance(self):
         self.pos += 1
@@ -106,7 +110,10 @@ class Lexer(object):
 
 
     def skip_whitespace(self):
+
         while (self.current_char is not None and self.current_char.isspace()):
+            if self.current_char == '\n':
+                self.new_line()
             self.advance()
 
 

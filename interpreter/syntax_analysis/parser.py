@@ -1,6 +1,6 @@
 from interpreter.lexical_analysis.tokenType import *
 from interpreter.syntax_analysis.interpreter import *
-from interpreter.syntax_analysis.util import restorable
+
 
 class Parser(object):
     def __init__(self, lexer):
@@ -8,8 +8,8 @@ class Parser(object):
         self.current_token = self.lexer.get_next_token()
 
     def error(self, expected_token):
-        raise Exception('Parsing error. Current token ({}) is not valid. Expected token should be: {} '
-                        .format(self.current_token, expected_token))
+        raise Exception('[Line: {}] Parsing error. Current token ({}) is not valid. Expected token should be: {} '
+                        .format(self.lexer.line_counter, self.current_token, expected_token))
 
     def eat(self, type):
         if self.current_token.type == type:
@@ -33,7 +33,7 @@ class Parser(object):
             else:
                 declarations.append(self.statement_list())
 
-        return Program(declarations)
+        return Program(declarations, self.lexer.line_counter)
 
     def import_function(self):
         """
@@ -43,12 +43,11 @@ class Parser(object):
         """
         built_in_functions = []
         self.eat(USE)
-        # TODO: Check if function exists
-        built_in_functions.append(BuiltInFunction(self.current_token.value))
+        built_in_functions.append(BuiltInFunction(self.current_token.value, self.lexer.line_counter))
         self.eat(ID)
         while self.current_token.type == COMMA:
             self.eat(COMMA)
-            built_in_functions.append(BuiltInFunction(self.current_token.value))
+            built_in_functions.append(BuiltInFunction(self.current_token.value, self.lexer.line_counter))
             self.eat(ID)
 
         self.eat(SEMICOLON)
@@ -63,18 +62,18 @@ class Parser(object):
 
         :return:
         """
+        line_counter = self.lexer.line_counter
         self.eat(DECFUN)
-
         fun_name = self.current_token.value
         self.eat(ID)
 
         self.eat(LPAREN)
-        parameters_node = Args(self.parameters())
+        parameters_node = Args(self.parameters(), self.lexer.line_counter)
         self.eat(RPAREN)
 
         self.eat(COLON)
 
-        type_node = Type(self.current_token.value)
+        type_node = Type(self.current_token.value, self.lexer.line_counter)
         self.eat(TYPE)
 
         statements = []
@@ -83,8 +82,8 @@ class Parser(object):
             statements.append(self.statement_list())
         self.eat(RBRACKET)
 
-        stmts_node = Stmts(statements)
-        return FunDecl(type_node=type_node, fun_name=fun_name, args_node=parameters_node, stmts_node=stmts_node)
+        stmts_node = Stmts(statements, self.lexer.line_counter)
+        return FunDecl(type_node=type_node, fun_name=fun_name, args_node=parameters_node, stmts_node=stmts_node, line_counter=line_counter)
 
     def parameters(self):
         """
@@ -97,18 +96,20 @@ class Parser(object):
 
         :return:
         """
+        line_counter = self.lexer.line_counter
         params = []
 
         while self.current_token.type != RPAREN:
-            # TODO: Should start with DOLLAR sign
             var_name = self.current_token.value
+            if var_name[0] != '$':
+                self.error('($) DOLLAR sign')
             self.eat(ID)
             self.eat(COLON)
-            type_node = Type(self.current_token.value)
+            type_node = Type(self.current_token.value, self.lexer.line_counter)
             self.eat(TYPE)
-            var_node = Var(var_name)
+            var_node = Var(var_name, self.lexer.line_counter)
 
-            params.append(VarDecl(type_node, var_node))
+            params.append(VarDecl(type_node, var_node, line_counter))
 
             if self.current_token.type == COMMA:
                 self.eat(COMMA)
@@ -138,16 +139,19 @@ class Parser(object):
             statements.append(self.loop_condition())
         elif self.current_token.type == RETURN:
             statements.append(self.return_statement())
+        else:
+            self.error("function call, declaration, condition, loop, return")
 
-        return Stmts(statements)
+        return Stmts(statements, self.lexer.line_counter)
 
     def function_call(self):
+        line_counter = self.lexer.line_counter
         fun_name = self.current_token.value
         self.eat(ID)
         self.eat(LPAREN)
         parameters = []
         while self.current_token.type != RPAREN:
-            var_node = Var(self.current_token.value)
+            var_node = Var(self.current_token.value, self.lexer.line_counter)
             parameters.append(var_node)
             self.eat(ID)
 
@@ -156,9 +160,10 @@ class Parser(object):
 
         self.eat(RPAREN)
 
-        return FunctionCall(fun_name, parameters)
+        return FunctionCall(fun_name, parameters, line_counter)
 
     def condition_statement(self):
+        line_counter = self.lexer.line_counter
         self.eat(COND)
         self.eat(LPAREN)
         node = self.bool_expr()
@@ -169,12 +174,13 @@ class Parser(object):
         while self.current_token.type != RBRACKET:
             statements.append(self.statement_list())
 
-        node = Condition(node, Stmts(statements))
+        node = Condition(node, Stmts(statements, self.lexer.line_counter), line_counter)
         self.eat(RBRACKET)
 
         return node
 
     def loop_condition(self):
+        line_counter = self.lexer.line_counter
         self.eat(LOOND)
         self.eat(LPAREN)
         node = self.bool_expr()
@@ -185,17 +191,18 @@ class Parser(object):
         while self.current_token.type != RBRACKET:
             statements.append(self.statement_list())
 
-        node = LoopCondition(node, Stmts(statements))
+        node = LoopCondition(node, Stmts(statements, self.lexer.line_counter), line_counter)
         self.eat(RBRACKET)
 
         return node
 
     def return_statement(self):
+        line_counter = self.lexer.line_counter
         self.eat(RETURN)
-        var_node = Var(self.current_token.value)
+        var_node = Var(self.current_token.value, self.lexer.line_counter)
         self.eat(ID)
         self.eat(SEMICOLON)
-        node = Return(var_node)
+        node = Return(var_node, line_counter)
 
         return node
 
@@ -211,15 +218,18 @@ class Parser(object):
         declarations = []
 
         self.eat(DEC)
-        # TODO: Should start with DOLLAR sign
+
         var_name = self.current_token.value
+        if var_name[0] != '$':
+            self.error('($) DOLLAR sign')
+
         self.eat(ID)
         self.eat(COLON)
-        type_node = Type(self.current_token.value)
+        type_node = Type(self.current_token.value, self.lexer.line_counter)
         self.eat(TYPE)
-        var_node = Var(var_name)
+        var_node = Var(var_name, self.lexer.line_counter)
 
-        declarations.append(VarDecl(type_node, var_node))
+        declarations.append(VarDecl(type_node, var_node, self.lexer.line_counter))
 
         declarations.extend(self.var_initialization(var_node, type_node))
         self.eat(SEMICOLON)
@@ -230,6 +240,7 @@ class Parser(object):
         """
         var_initialization          : (ASSIGN (expr | string_expr | bool_expr))?
 
+        :param type_node:
         :param var_node:
         :return:
         """
@@ -237,28 +248,12 @@ class Parser(object):
         if self.current_token.type == ASSIGN:
             self.eat(ASSIGN)
 
-            # TODO: Maybe should do check in node visitor?
-            # if type is int, then expr
-            # if type is boolean, than bool_expr
-            # if type is string, than string_expr
-
-            if type_node.type == 'int':
-                # TODO: check if var is declared as integer
-                declarations.append(Assign(var_node, self.expr()))
-
-            elif type_node.type == 'float':
-                # TODO: check if var is declared as float
-                declarations.append(Assign(var_node, self.expr()))
-
+            if type_node.type in ('int', 'float'):
+                declarations.append(Assign(var_node, self.expr(), self.lexer.line_counter))
             elif type_node.type == 'string':
-                # TODO: check if var is declared as string
-                declarations.append(Assign(var_node, self.string_expr()))
+                declarations.append(Assign(var_node, self.string_expr(), self.lexer.line_counter))
             elif type_node.type == 'array':
-                # TODO: change expr
-                declarations.append(Assign(var_node, self.string_expr()))
-            # elif type_node.type == 'boolean':
-            #     # TODO: check if var is declared as string
-            #     declarations.append(Assign(var_node, self.bool_expr()))
+                declarations.append(Assign(var_node, self.string_expr(), self.lexer.line_counter))
 
         return declarations
 
@@ -278,10 +273,10 @@ class Parser(object):
 
         if token.type == INTEGER:
             self.eat(INTEGER)
-            return Num(token)
+            return Num(token, self.lexer.line_counter)
         elif token.type == FLOAT:
             self.eat(FLOAT)
-            return Num(token)
+            return Num(token, self.lexer.line_counter)
         elif token.type == LPAREN:
             self.eat(LPAREN)
             node = self.expr()
@@ -290,9 +285,11 @@ class Parser(object):
         elif token.type == ID:
             if token.value[0] == '@':
                 return self.function_call()
-            else:
+            elif token.value[0] == '$':
                 self.eat(ID)
-                return Var(token.value)
+                return Var(token.value, self.lexer.line_counter)
+            else:
+                self.error('variable or function call')
 
     def term(self):
         """
@@ -309,7 +306,7 @@ class Parser(object):
             else:
                 self.error(' or '.join([MUL, DIV, REAL_DIV, MOD]))
 
-            node = BinOp(left=node, op=token, right=self.factor())
+            node = BinOp(left=node, op=token, right=self.factor(), line_counter=self.lexer.line_counter)
 
         return node
 
@@ -330,7 +327,7 @@ class Parser(object):
             else:
                 self.error(' or '.join([PLUS, MINUS]))
 
-            node = BinOp(left=node, op=token, right=self.expr())
+            node = BinOp(left=node, op=token, right=self.expr(), line_counter=self.lexer.line_counter)
 
         return node
 
@@ -343,13 +340,15 @@ class Parser(object):
         token = self.current_token
         if token.type == STRING:
             self.eat(STRING)
-            return String(token)
+            return String(token, self.lexer.line_counter)
         elif token.type == ID:
             if token.value[0] == '@':
                 return self.function_call()
-            else:
+            elif token.value[0] == '$':
                 self.eat(ID)
-                return Var(token.value)
+                return Var(token.value, self.lexer.line_counter)
+            else:
+                self.error('String, variable or function call')
 
     def string_expr(self):
         """
@@ -361,7 +360,7 @@ class Parser(object):
         while self.current_token.type == DOT:
             self.eat(DOT)
 
-            node = ConcatStr(left=node, right=self.string_expr())
+            node = ConcatStr(left=node, right=self.string_expr(), line_counter=self.lexer.line_counter)
         return node
 
     def bool_expr(self):
@@ -389,7 +388,7 @@ class Parser(object):
         else:
             self.error(' or '.join([LESS, LESS_EQ, GREATER, GREATER_EQ, EQUAL, NOT_EQUAL]))
 
-        node = ComparationOp(left=node, op=token, right=self.expr())
+        node = ComparationOp(left=node, op=token, right=self.expr(), line_counter=self.lexer.line_counter)
 
         return node
 
@@ -407,7 +406,7 @@ class Parser(object):
             node = self.bool_simple_expr()
             self.eat(RPAREN)
 
-            node = UnOp(un_token, node)
+            node = UnOp(un_token, node, self.lexer.line_counter)
         else:
             self.eat(LPAREN)
             node = self.bool_simple_expr()
@@ -422,14 +421,14 @@ class Parser(object):
                 self.eat(NOT)
                 self.eat(LPAREN)
 
-                node = BinOp(node, token, UnOp(un_token, self.bool_simple_expr()))
+                node = BinOp(node, token, UnOp(un_token, self.bool_simple_expr(), self.lexer.line_counter), self.lexer.line_counter)
 
                 self.eat(RPAREN)
 
             else:
                 self.eat(LPAREN)
 
-                node = BinOp(node, token, self.bool_simple_expr())
+                node = BinOp(node, token, self.bool_simple_expr(), self.lexer.line_counter)
 
                 self.eat(RPAREN)
 

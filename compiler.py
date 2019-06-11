@@ -1,9 +1,10 @@
 import argparse
 import textwrap
 
+from exceptions import CompileException
 from interpreter.lexical_analysis.lexer import Lexer
 from interpreter.lexical_analysis.tokenType import *
-from interpreter.syntax_analysis.interpreter import NodeVisitor, VarDecl, Assign, Stmts
+from interpreter.syntax_analysis.interpreter import NodeVisitor, VarDecl, Assign, Stmts, Return, LoopCondition, Condition
 from interpreter.syntax_analysis.parser import Parser
 from built_in_fun_generator import built_in_impl_map, built_in_metadata_map
 
@@ -28,6 +29,9 @@ class ASTVisualizer(NodeVisitor):
         self.current_scope = 'main'
         self.var_memory = {}
         self.function_memory = {}
+
+    def error_message(self, line, message):
+        raise CompileException(f"[Line: {line}] {message}")
 
     def add_var_to_memory(self, var_name, var_type):
         if self.current_scope in self.var_memory:
@@ -85,6 +89,27 @@ class ASTVisualizer(NodeVisitor):
                 return False
         return True
 
+    def check_if_func_has_return(self, stmts_node):
+        # has_return = False
+        # for statement in stmts_node.stmts:
+        #     if isinstance(statement, Stmts):
+        #         if self.check_if_func_has_return(statement):
+        #             has_return = True
+        #     elif isinstance(statement, LoopCondition) or isinstance(statement, Condition):
+        #         if self.check_if_func_has_return(statement.stmts_node):
+        #             has_return = True
+        #     elif isinstance(statement, Return):
+        #         has_return = True
+        # return has_return
+        has_return = False
+        for statement in stmts_node.stmts:
+            if isinstance(statement, Stmts):
+                if self.check_if_func_has_return(statement):
+                    has_return = True
+            elif isinstance(statement, Return):
+                has_return = True
+        return has_return
+
     def get_func_parameters_count(self, fun_name):
         return len(self.function_memory[fun_name]['parameter_names'])
 
@@ -132,6 +157,10 @@ class ASTVisualizer(NodeVisitor):
         self.visit(node.expr)
 
     def visit_FunDecl(self, node):
+        if node.type_node.type != 'do' and not self.check_if_func_has_return(node.stmts_node):
+            self.error_message(node.line_counter,
+                               "Function {} does not have return statement". format(node.fun_name))
+
         self.add_func_to_memory(node.fun_name, node.args_node, node.type_node.type)
 
         self.current_scope = node.fun_name
@@ -153,9 +182,12 @@ class ASTVisualizer(NodeVisitor):
 
     def visit_Return(self, node):
         if self.current_scope == 'main':
-            raise Exception("Function should have return statement")
+            self.error_message(node.line_counter, 'Function should have return statement')
         if self.get_func_type(self.current_scope) != self.get_var_type(node.var.var, self.current_scope):
-            raise Exception("Return type should be {}, {} returned".format(self.get_func_type(self.current_scope), self.get_var_type(node.var.var, self.current_scope)))
+            self.error_message(node.line_counter,
+                               "Return type should be {}, {} returned"
+                               .format(self.get_func_type(self.current_scope), self.get_var_type(node.var.var, self.current_scope)))
+
         s = 'return '.format(self.nodecount)
         self.dot_body.append(s)
 
@@ -187,18 +219,21 @@ class ASTVisualizer(NodeVisitor):
 
     def visit_Var(self, node):
         if not self.is_var_visible(node.var, self.current_scope):
-            raise Exception('Variable {} is not defined'.format(node.var))
+            self.error_message(node.line_counter, 'Variable {} is not defined'.format(node.var))
+
         s = node.var[1:]
         self.dot_body.append(s)
 
     def visit_FunctionCall(self, node):
         if not self.check_func_visibility(node.fun_name[1:]):
-            raise Exception('Function {} is not defined'.format(node.fun_name))
+            self.error_message(node.line_counter, 'Function {} is not defined'.format(node.fun_name))
         if not self.check_func_parameters_count(node.fun_name[1:], node.arg_vars):
-            raise Exception('Function {} expect {} parameter(s), {} given.'
-                            .format(node.fun_name, self.get_func_parameters_count(node.fun_name[1:]), len(node.arg_vars)))
+            self.error_message(node.line_counter,
+                               'Function {} expect {} parameter(s), {} given.'
+                               .format(node.fun_name, self.get_func_parameters_count(node.fun_name[1:]), len(node.arg_vars)))
         if not self.check_func_parameter_types(node.fun_name[1:], node.arg_vars):
-            raise Exception("The arguments type does not match with arguments of function {}".format(node.fun_name[1:]))
+            self.error_message(node.line_counter,
+                               "The arguments type does not match with arguments of function {}".format(node.fun_name[1:]))
 
         fun_name = node.fun_name[1:]
 
