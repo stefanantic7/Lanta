@@ -2,8 +2,8 @@ decfun solve($n:int): string {
 
     dec $var1: string = "pero caoo";
 
-    return $var;
+    return $var1;
 
 }
 
-dec $var2: string = "pero cao";
+dec $var2: string = $var1;

@@ -5,7 +5,7 @@ from interpreter.lexical_analysis.lexer import Lexer
 from interpreter.lexical_analysis.tokenType import *
 from interpreter.syntax_analysis.interpreter import NodeVisitor, VarDecl, Assign, Stmts
 from interpreter.syntax_analysis.parser import Parser
-from built_in_fun_generator import built_in_impl_map
+from built_in_fun_generator import built_in_impl_map, built_in_metadata_map
 
 
 class ASTVisualizer(NodeVisitor):
@@ -29,6 +29,70 @@ class ASTVisualizer(NodeVisitor):
             '&&': 'and',
             '||': 'or'
         }
+        self.current_scope = 'main'
+        self.var_memory = {}
+        self.function_memory = {}
+
+    def add_var_to_memory(self, var_name, var_type):
+        if self.current_scope in self.var_memory:
+            self.var_memory[self.current_scope].append({'name': var_name, 'type': var_type})
+        else:
+            self.var_memory[self.current_scope] = [{'name': var_name, 'type': var_type}]
+
+    def is_var_visible(self, var_name, given_scope):
+        if given_scope in self.var_memory:
+            for var in self.var_memory[given_scope]:
+                if var['name'] == var_name:
+                    return True
+
+        return False
+
+    def get_var_type(self, var_name):
+        for scope in self.var_memory:
+            for variable in self.var_memory[scope]:
+                if var_name == variable['name']:
+                    return variable['type']
+        return None
+
+    def get_func_type(self, fun_name):
+        for fun in self.function_memory:
+            if fun == fun_name:
+                return self.function_memory[fun]['return_type']
+        return None
+
+    def add_func_to_memory(self, fun_name, args_node, return_type):
+        parameter_names = []
+        parameter_types = []
+        for arg in args_node.args:
+            parameter_names.append(arg.var_node.var)
+            parameter_types.append(arg.type_node.type)
+
+        self.function_memory[fun_name] = {
+            'parameter_names': parameter_names,
+            'parameter_types': parameter_types,
+            'return_type': return_type
+        }
+
+    def check_func_visibility(self, fun_name):
+        if fun_name in self.function_memory:
+            return True
+
+        return False
+
+    def check_func_parameters_count(self, fun_name, parameters):
+        return len(self.function_memory[fun_name]['parameter_names']) == len(parameters)
+
+    def check_func_parameter_types(self, fun_name, parameter_types):
+        for i in range(len(self.function_memory[fun_name]['parameter_types'])):
+            if self.function_memory[fun_name]['parameter_types'][i] == 'any':
+                continue
+            if self.function_memory[fun_name]['parameter_types'][i] != self.get_var_type(parameter_types[i].var):
+                return False
+        return True
+
+    def get_func_parameters_count(self, fun_name):
+        return len(self.function_memory[fun_name]['parameter_names'])
+
     def increment_tabs(self):
         self.num_tabs += 1
 
@@ -49,43 +113,54 @@ class ASTVisualizer(NodeVisitor):
             self.visit(child)
 
     def visit_BuiltInFunction(self, node):
+        s = '# imported {}\n'.format(node.function)
+        self.dot_heder.append(s)
+        # fun_declaration = built_in_metadata_map[node.function]
+        # self.add_func_to_memory(fun_declaration.fun_name, fun_declaration.args_node, fun_declaration.type_node.type)
+
         if node.function in built_in_impl_map:
             s = built_in_impl_map[node.function]
             self.dot_heder.append(s)
 
-
     def visit_VarDecl(self, node):
-        node.num = self.nodecount
-        self.nodecount += 1
+        if not self.is_var_visible(node.var_node.var, self.current_scope):
+            self.add_var_to_memory(node.var_node.var, node.type_node.type)
 
         self.visit(node.type_node)
 
         self.visit(node.var_node)
 
     def visit_Assign(self, node):
-        node.num = self.nodecount
-        self.nodecount += 1
-
         s = '='
         self.dot_body.append(s)
 
         self.visit(node.expr)
 
     def visit_FunDecl(self, node):
+        self.add_func_to_memory(node.fun_name, node.args_node, node.type_node.type)
+
+        self.current_scope = node.fun_name
+
         s = 'def {}('.format(node.fun_name)
         self.dot_body.append(s)
         self.visit(node.args_node)
 
         s = '):\n'
+
         self.dot_body.append(s)
         self.increment_tabs()
 
         self.visit(node.stmts_node)
 
         self.decrement_tabs()
+        self.current_scope = 'main'
 
 
     def visit_Return(self, node):
+        if self.current_scope == 'main':
+            raise Exception("Function should have return statement")
+        if self.get_func_type(self.current_scope) != self.get_var_type(node.var.var):
+            raise Exception("Return type should be {}, {} returned".format(self.get_func_type(self.current_scope), self.get_var_type(node.var.var)))
         s = 'return '.format(self.nodecount)
         self.dot_body.append(s)
 
@@ -112,12 +187,20 @@ class ASTVisualizer(NodeVisitor):
         self.nodecount += 1
 
     def visit_Var(self, node):
+        if not self.is_var_visible(node.var, self.current_scope):
+            raise Exception('Variable {} is not defined'.format(node.var))
         s = node.var[1:]
-        node.num = self.nodecount
-        self.nodecount += 1
         self.dot_body.append(s)
 
     def visit_FunctionCall(self, node):
+        if node.fun_name[1:] not in built_in_impl_map and node.fun_name[1:] not in self.py_built_in_fun_map:
+            if not self.check_func_visibility(node.fun_name[1:]):
+                raise Exception('Function {} is not defined'.format(node.fun_name))
+            if not self.check_func_parameters_count(node.fun_name[1:], node.arg_vars):
+                raise Exception('Function {} expect {} parameter(s), {} given.'
+                                .format(node.fun_name, self.get_func_parameters_count(node.fun_name[1:]), len(node.arg_vars)))
+            if not self.check_func_parameter_types(node.fun_name[1:], node.arg_vars):
+                raise Exception("The arguments type does not match with arguments of function {}".format(node.fun_name[1:]))
 
         fun_name = node.fun_name[1:]
         if fun_name in self.py_built_in_fun_map:
@@ -235,7 +318,7 @@ def main():
     args = argparser.parse_args()
     fname = args.fname
 
-    # fname = './examples/test1.txt'
+    # fname = './zadaci/1.app'
 
     text = open(fname, 'r').read()
 

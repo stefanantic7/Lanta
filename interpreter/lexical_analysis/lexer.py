@@ -9,7 +9,10 @@ class Lexer(object):
     def __init__(self, text):
         self.text = text
         self.pos = 0
-        self.current_char = self.text[self.pos]
+        if len(text) > 0:
+            self.current_char = self.text[self.pos]
+        else:
+            self.current_char = None
 
     def error(self):
         raise Exception('Neocekivani karakter {} '.format(self.current_char))

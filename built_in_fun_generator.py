@@ -1,3 +1,5 @@
+from interpreter.syntax_analysis.interpreter import Args, VarDecl, Type, Var, FunDecl, Stmts
+
 str_equals = """
 def str_equals(s1, s2):
     return int(s1 == s2)
@@ -107,4 +109,21 @@ built_in_impl_map = {
     'str_to_upper': str_to_upper,
     'file_read': file_read,
     'str_split': str_split
+}
+str_equals_parameters = Args([VarDecl(Type('string'), Var('s1')), VarDecl(Type('string'), Var('s2'))])
+str_equals_return_type = Type('int')
+str_equals_dec = FunDecl(type_node=str_equals_return_type, fun_name='str_equals', args_node=str_equals_parameters, stmts_node=Stmts([]))
+
+cast_to_parameters = Args([VarDecl(Type('any'), Var('var')), VarDecl(Type('string'), Var('type'))])
+cast_to_return_type = Type('any')
+cast_to_dec = FunDecl(type_node=cast_to_return_type, fun_name='cast_to', args_node=cast_to_parameters, stmts_node=Stmts([]))
+
+sqrt_parameters = Args([VarDecl(Type('int'), Var('value'))])
+sqrt_return_type = Type('float')
+sqrt_dec = FunDecl(type_node=sqrt_return_type, fun_name='sqrt', args_node=sqrt_parameters, stmts_node=Stmts([]))
+
+built_in_metadata_map = {
+    'sqrt': sqrt_dec,
+    'str_equals': str_equals_dec,
+    'cast_to': cast_to_dec
 }
