@@ -2,6 +2,9 @@ class AST(object):
     def __init__(self, line_counter):
         self.line_counter = line_counter
 
+class Null(AST):
+    pass
+
 class Program(AST):
     def __init__(self, declarations, line_counter):
         super().__init__(line_counter)

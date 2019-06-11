@@ -156,6 +156,10 @@ class ASTVisualizer(NodeVisitor):
 
         self.visit(node.expr)
 
+    def visit_Null(self, node):
+        s = 'None'
+        self.dot_body.append(s)
+
     def visit_FunDecl(self, node):
         if node.type_node.type != 'do' and not self.check_if_func_has_return(node.stmts_node):
             self.error_message(node.line_counter,

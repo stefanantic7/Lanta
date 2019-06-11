@@ -1,3 +1,4 @@
+from exceptions import CompileException
 from interpreter.lexical_analysis.tokenType import *
 from interpreter.syntax_analysis.interpreter import *
 
@@ -8,7 +9,7 @@ class Parser(object):
         self.current_token = self.lexer.get_next_token()
 
     def error(self, expected_token):
-        raise Exception('[Line: {}] Parsing error. Current token ({}) is not valid. Expected token should be: {} '
+        raise CompileException('[Line: {}] Parsing error. Current token ({}) is not valid. Expected token should be: {} '
                         .format(self.lexer.line_counter, self.current_token, expected_token))
 
     def eat(self, type):
@@ -248,16 +249,20 @@ class Parser(object):
         if self.current_token.type == ASSIGN:
             self.eat(ASSIGN)
 
-            if type_node.type in ('int', 'float'):
+            if type_node.type == 'int':
                 declarations.append(Assign(var_node, self.expr(), self.lexer.line_counter))
+            elif type_node.type == 'float':
+                declarations.append(Assign(var_node, self.expr(floating_point=True), self.lexer.line_counter))
             elif type_node.type == 'string':
                 declarations.append(Assign(var_node, self.string_expr(), self.lexer.line_counter))
             elif type_node.type == 'array':
                 declarations.append(Assign(var_node, self.string_expr(), self.lexer.line_counter))
+        else:
+            declarations.append(Assign(var_node, Null(self.lexer.line_counter), self.lexer.line_counter))
 
         return declarations
 
-    def factor(self):
+    def factor(self, floating_point=False):
         """
         factor              : PLUS factor
                             | MINUS factor
@@ -274,17 +279,17 @@ class Parser(object):
         if token.type == INTEGER:
             self.eat(INTEGER)
             return Num(token, self.lexer.line_counter)
-        elif token.type == FLOAT:
+        elif token.type == FLOAT and floating_point:
             self.eat(FLOAT)
             return Num(token, self.lexer.line_counter)
         elif token.type == LPAREN:
             self.eat(LPAREN)
-            node = self.expr()
+            node = self.expr(floating_point=floating_point)
             self.eat(RPAREN)
             return node
         elif token.type == MINUS:
             self.eat(MINUS)
-            node = UnOp(token, self.expr(), self.lexer.line_counter)
+            node = UnOp(token, self.expr(floating_point=floating_point), self.lexer.line_counter)
             return node
         elif token.type == ID:
             if token.value[0] == '@':
@@ -295,13 +300,13 @@ class Parser(object):
             else:
                 self.error('variable or function call')
 
-    def term(self):
+    def term(self, floating_point=False):
         """
         term                        : factor ((MUL | DIV | REAL_DIV | MOD) factor)*
 
         :return:
         """
-        node = self.factor()
+        node = self.factor(floating_point=floating_point)
 
         while self.current_token.type in (MUL, DIV, REAL_DIV, MOD):
             token = self.current_token
@@ -310,17 +315,17 @@ class Parser(object):
             else:
                 self.error(' or '.join([MUL, DIV, REAL_DIV, MOD]))
 
-            node = BinOp(left=node, op=token, right=self.factor(), line_counter=self.lexer.line_counter)
+            node = BinOp(left=node, op=token, right=self.factor(floating_point=floating_point), line_counter=self.lexer.line_counter)
 
         return node
 
-    def expr(self):
+    def expr(self, floating_point=False):
         """
         expr                        : term ((PLUS | MINUS) term)*
 
         :return:
         """
-        node = self.term()
+        node = self.term(floating_point=floating_point)
 
         while self.current_token.type in (PLUS, MINUS):
             token = self.current_token
@@ -331,7 +336,7 @@ class Parser(object):
             else:
                 self.error(' or '.join([PLUS, MINUS]))
 
-            node = BinOp(left=node, op=token, right=self.expr(), line_counter=self.lexer.line_counter)
+            node = BinOp(left=node, op=token, right=self.expr(floating_point=floating_point), line_counter=self.lexer.line_counter)
 
         return node
 

@@ -23,5 +23,7 @@ for file_name in os.listdir(path):
         python_file_name
     ))
 
+    print(f"File {input_file_name} is compiled")
+
 print('DONE')
 
