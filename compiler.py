@@ -135,6 +135,8 @@ class ASTVisualizer(NodeVisitor):
     def visit_BuiltInFunction(self, node):
         s = '# imported {}\n'.format(node.function)
         self.dot_heder.append(s)
+        if node.function not in built_in_metadata_map:
+            self.error_message(node.line_counter, "Function {} does not exist".format(node.function))
         fun_declaration = built_in_metadata_map[node.function]
         self.add_func_to_memory(fun_declaration.fun_name, fun_declaration.args_node, fun_declaration.type_node.type)
 
