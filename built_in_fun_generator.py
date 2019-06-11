@@ -41,17 +41,17 @@ def is_integer(value):
 
 array_append = """
 def array_append(arr, value):
-    array.append(value)
+    arr.append(value)
 """
 
 array_size = """
 def array_size(arr):
-    return len(array)
+    return len(arr)
 """
 
 array_get = """
 def array_get(arr, index):
-    return array[index]
+    return arr[index]
 """
 
 str_char_at = """
