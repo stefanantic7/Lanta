@@ -21,10 +21,6 @@ class ASTVisualizer(NodeVisitor):
         self.dot_body = []
         self.dot_footer = ['']
 
-        self.py_built_in_fun_map = {
-            'cput': 'print',
-            'cget': 'input'
-        }
         self.comparison_op_map = {
             '&&': 'and',
             '||': 'or'
@@ -122,8 +118,6 @@ class ASTVisualizer(NodeVisitor):
             self.dot_heder.append(s)
 
     def visit_VarDecl(self, node):
-        print(node.var_node.var)
-        print(self.is_var_visible(node.var_node.var, self.current_scope))
         if not self.is_var_visible(node.var_node.var, self.current_scope):
             self.add_var_to_memory(node.var_node.var, node.type_node.type)
 
@@ -174,6 +168,10 @@ class ASTVisualizer(NodeVisitor):
                 self.dot_body.append(', ')
 
     def visit_Stmts(self, node):
+        if len(node.stmts) == 0:
+            self.dot_body.append(self.generate_tabs())
+            self.dot_body.append('pass')
+
         for child in node.stmts:
             if not isinstance(child, Assign) and not isinstance(child, Stmts):
                 self.dot_body.append(self.generate_tabs())
