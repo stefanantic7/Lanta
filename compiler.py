@@ -115,8 +115,8 @@ class ASTVisualizer(NodeVisitor):
     def visit_BuiltInFunction(self, node):
         s = '# imported {}\n'.format(node.function)
         self.dot_heder.append(s)
-        # fun_declaration = built_in_metadata_map[node.function]
-        # self.add_func_to_memory(fun_declaration.fun_name, fun_declaration.args_node, fun_declaration.type_node.type)
+        fun_declaration = built_in_metadata_map[node.function]
+        self.add_func_to_memory(fun_declaration.fun_name, fun_declaration.args_node, fun_declaration.type_node.type)
 
         if node.function in built_in_impl_map:
             s = built_in_impl_map[node.function]
@@ -193,18 +193,15 @@ class ASTVisualizer(NodeVisitor):
         self.dot_body.append(s)
 
     def visit_FunctionCall(self, node):
-        if node.fun_name[1:] not in built_in_impl_map and node.fun_name[1:] not in self.py_built_in_fun_map:
-            if not self.check_func_visibility(node.fun_name[1:]):
-                raise Exception('Function {} is not defined'.format(node.fun_name))
-            if not self.check_func_parameters_count(node.fun_name[1:], node.arg_vars):
-                raise Exception('Function {} expect {} parameter(s), {} given.'
-                                .format(node.fun_name, self.get_func_parameters_count(node.fun_name[1:]), len(node.arg_vars)))
-            if not self.check_func_parameter_types(node.fun_name[1:], node.arg_vars):
-                raise Exception("The arguments type does not match with arguments of function {}".format(node.fun_name[1:]))
+        if not self.check_func_visibility(node.fun_name[1:]):
+            raise Exception('Function {} is not defined'.format(node.fun_name))
+        if not self.check_func_parameters_count(node.fun_name[1:], node.arg_vars):
+            raise Exception('Function {} expect {} parameter(s), {} given.'
+                            .format(node.fun_name, self.get_func_parameters_count(node.fun_name[1:]), len(node.arg_vars)))
+        if not self.check_func_parameter_types(node.fun_name[1:], node.arg_vars):
+            raise Exception("The arguments type does not match with arguments of function {}".format(node.fun_name[1:]))
 
         fun_name = node.fun_name[1:]
-        if fun_name in self.py_built_in_fun_map:
-            fun_name = self.py_built_in_fun_map[fun_name]
 
         s = '{}('.format(fun_name)
         self.dot_body.append(s)
@@ -313,12 +310,12 @@ class ASTVisualizer(NodeVisitor):
 
 
 def main():
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('fname')
-    args = argparser.parse_args()
-    fname = args.fname
+    # argparser = argparse.ArgumentParser()
+    # argparser.add_argument('fname')
+    # args = argparser.parse_args()
+    # fname = args.fname
 
-    # fname = './zadaci/1.app'
+    fname = './zadaci/9.app'
 
     text = open(fname, 'r').read()
 

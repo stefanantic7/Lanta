@@ -1,6 +1,6 @@
 use cget, cput;
 use cast_to;
-use str_length, str_char_at, str_is_alpha, str_is_digit, str_split, str_replace, str_to_upper, str_equals;
+use str_length, str_char_at, str_is_alpha, str_is_digit, str_split, str_to_upper, str_equals;
 use array_size, array_get;
 use file_read;
 

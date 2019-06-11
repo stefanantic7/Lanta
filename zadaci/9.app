@@ -1,6 +1,6 @@
 use cget, cput;
 use cast_to;
-use str_length, str_char_at, str_is_alpha, str_is_digit, str_split, str_replace, str_to_upper, str_equals;
+use str_length, str_char_at, str_is_alpha, str_is_digit, str_split, str_to_upper, str_equals;
 use array_size, array_get;
 
 dec $string_t: string = "string";
@@ -25,7 +25,7 @@ decfun solve($n:int): do {
 	dec $c7: string = "!";
 
 
-	loond($index < @array_size($tekst)) {
+	loond($index < @str_length($tekst)) {
 		dec $char: string = @str_char_at($tekst, $index);
 
 		cond( (@str_equals($char,$c1)==1) || (@str_equals($char,$c2)==1) || (@str_equals($char,$c3)==1) || (@str_equals($char,$c4)==1) || (@str_equals($char,$c5)==1) || (@str_equals($char,$c6)==1) || (@str_equals($char,$c7)==1) ) {
