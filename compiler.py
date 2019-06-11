@@ -344,12 +344,12 @@ class ASTVisualizer(NodeVisitor):
 
 
 def main():
-    # argparser = argparse.ArgumentParser()
-    # argparser.add_argument('fname')
-    # args = argparser.parse_args()
-    # fname = args.fname
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('fname')
+    args = argparser.parse_args()
+    fname = args.fname
 
-    fname = './zadaci/test.app'
+    # fname = './zadaci/9.app'
 
     text = open(fname, 'r').read()
 
