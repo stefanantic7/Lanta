@@ -269,7 +269,10 @@ class ASTVisualizer(NodeVisitor):
 
 
     def visit_UnOp(self, node):
-        s = 'not' #TODO: get from map
+        if node.token.type == NOT:
+            s = 'not'
+        else:
+            s = '-'
         self.dot_body.append(s)
         self.visit(node.bool_expr)
 
@@ -349,7 +352,7 @@ def main():
     args = argparser.parse_args()
     fname = args.fname
 
-    # fname = './zadaci/9.app'
+    # fname = './zadaci/test.app'
 
     text = open(fname, 'r').read()
 

@@ -282,6 +282,10 @@ class Parser(object):
             node = self.expr()
             self.eat(RPAREN)
             return node
+        elif token.type == MINUS:
+            self.eat(MINUS)
+            node = UnOp(token, self.expr(), self.lexer.line_counter)
+            return node
         elif token.type == ID:
             if token.value[0] == '@':
                 return self.function_call()

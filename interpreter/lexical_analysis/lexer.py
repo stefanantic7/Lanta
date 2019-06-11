@@ -135,16 +135,6 @@ class Lexer(object):
             if self.current_char.isdigit():
                 return self.number()
 
-            if self.current_char == '-':
-                self.advance()
-                if self.current_char.isdigit():
-                    return self.number(positive=False)
-
-            if self.current_char == '+':
-                self.advance()
-                if self.current_char.isdigit():
-                    return self.number(positive=True)
-
             #Ovo
             if self.current_char.isalpha():
                 return self._id()
@@ -194,6 +184,8 @@ class Lexer(object):
 
             if self.current_char == '-':
                 self.advance()
+                if self.current_char.isdigit():
+                    return self.number(positive=False)
                 return Token(MINUS, '-')
 
             if self.current_char == '*':
