@@ -1,0 +1,6 @@
+
+decfun solve(): do {
+
+}
+
+@solv();

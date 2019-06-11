@@ -136,7 +136,7 @@ class ASTVisualizer(NodeVisitor):
         s = '# imported {}\n'.format(node.function)
         self.dot_heder.append(s)
         if node.function not in built_in_metadata_map:
-            self.error_message(node.line_counter, "Function {} does not exist".format(node.function))
+            self.error_message(node.line_counter, "Function {} does not exist in built in functions".format(node.function))
         fun_declaration = built_in_metadata_map[node.function]
         self.add_func_to_memory(fun_declaration.fun_name, fun_declaration.args_node, fun_declaration.type_node.type)
 
@@ -188,7 +188,7 @@ class ASTVisualizer(NodeVisitor):
 
     def visit_Return(self, node):
         if self.current_scope == 'main':
-            self.error_message(node.line_counter, 'Function should have return statement')
+            self.error_message(node.line_counter, 'Only functions should have return statement')
         if self.get_func_type(self.current_scope) != self.get_var_type(node.var.var, self.current_scope):
             self.error_message(node.line_counter,
                                "Return type should be {}, {} returned"
@@ -208,7 +208,8 @@ class ASTVisualizer(NodeVisitor):
     def visit_Stmts(self, node):
         if len(node.stmts) == 0:
             self.dot_body.append(self.generate_tabs())
-            self.dot_body.append('pass')
+            self.dot_body.append('pass\n')
+            self.decrement_tabs()
 
         for child in node.stmts:
             if not isinstance(child, Assign) and not isinstance(child, Stmts):
