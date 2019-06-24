@@ -18,7 +18,7 @@ for file_name in os.listdir(path):
     input_file_name = '{}.{}'.format(path+file_name, ext)
     python_file_name = '{}.py'.format(path+file_name)
 
-    os.system('python compiler.py {} > {}'.format(
+    os.system('python lant.py {} > {}'.format(
         input_file_name,
         python_file_name
     ))
