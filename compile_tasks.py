@@ -10,7 +10,7 @@ for file_name in os.listdir(path):
         continue
 
     ext = file_name[dot_pos+1:]
-    if ext != 'app':
+    if ext != 'lnt':
         continue
 
     file_name = file_name[:dot_pos]
