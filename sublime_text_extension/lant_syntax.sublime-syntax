@@ -1,0 +1,36 @@
+%YAML 1.2
+---
+name: Lant
+file_extensions: [lnt]
+scope: source.lnt
+
+contexts:
+  main:
+    - match: \b(cond|loond|use|dec|decfun|return|true|false)\b
+      scope: keywords
+    - match: '"'
+      push: string
+    - match: "\\#\\#"
+      push: comments
+    - match: \b(int|float|array|string|boolean|do)\b
+      scope: types
+    - match: \b([0-9]*[.])?[0-9]+\b
+      scope: numbers
+    - match: "\\$[a-zA-Z_0-9]*"
+      scope: variables
+    - match: "\\@[a-zA-Z_0-9]*"
+      scope: functions.call
+
+  string:
+    - meta_scope: strings
+    - match: \\.
+      scope: constant.character.escape.app
+    - match: '"'
+      pop: true
+
+  comments:
+    - meta_scope: comments
+    - match: \\.
+      scope: constant.character.escape.app
+    - match: "\\#\\#"
+      pop: true
