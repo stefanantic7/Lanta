@@ -1,9 +1,0 @@
-decfun solve($n:int): string {
-
-    dec $var1: string = "pero caoo";
-
-    return $var;
-
-}
-
-dec $var2: string = "pero cao";

@@ -1,3 +1,8 @@
+"""
+Built-in functions descriptor file.
+Define all builtin functions and describe their arguments and return types.
+"""
+
 from interpreter.syntax_analysis.interpreter import Args, VarDecl, Type, Var, FunDecl, Stmts
 
 str_equals = """

@@ -1,3 +1,7 @@
+"""
+Exceptions descriptor.
+Define all exception that can be thrown during compilation.
+"""
 import sys
 
 

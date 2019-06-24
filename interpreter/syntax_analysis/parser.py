@@ -146,6 +146,11 @@ class Parser(object):
         return Stmts(statements, self.lexer.line_counter)
 
     def function_call(self):
+        """
+        function_call               : AT ID LPAREN (variable)? (COMMA (variable))* RPAREN
+
+        :return:
+        """
         line_counter = self.lexer.line_counter
         fun_name = self.current_token.value
         self.eat(ID)
@@ -164,6 +169,11 @@ class Parser(object):
         return FunctionCall(fun_name, parameters, line_counter)
 
     def condition_statement(self):
+        """
+        condition_statement         : ID<'cond'> LPAREN bool_expr RPAREN LBRACKET statement_list RBRACKET
+
+        :return:
+        """
         line_counter = self.lexer.line_counter
         self.eat(COND)
         self.eat(LPAREN)
@@ -181,6 +191,11 @@ class Parser(object):
         return node
 
     def loop_condition(self):
+        """
+        loop_condition              : ID<'loond'> LPAREN bool_expr RPAREN LBRACKET statement_list RBRACKET
+
+        :return:
+        """
         line_counter = self.lexer.line_counter
         self.eat(LOOND)
         self.eat(LPAREN)
@@ -198,6 +213,11 @@ class Parser(object):
         return node
 
     def return_statement(self):
+        """
+        return_statement            : RETURN variable SEMICOLON
+
+        :return:
+        """
         line_counter = self.lexer.line_counter
         self.eat(RETURN)
         var_node = Var(self.current_token.value, self.lexer.line_counter)
@@ -397,7 +417,7 @@ class Parser(object):
         else:
             self.error(' or '.join([LESS, LESS_EQ, GREATER, GREATER_EQ, EQUAL, NOT_EQUAL]))
 
-        node = ComparationOp(left=node, op=token, right=self.expr(), line_counter=self.lexer.line_counter)
+        node = ComparisonOp(left=node, op=token, right=self.expr(), line_counter=self.lexer.line_counter)
 
         return node
 

@@ -1,5 +1,6 @@
 PLUS, MINUS, MUL, DIV, REAL_DIV, MOD, EOF, RPAREN, LPAREN, LESS, GREATER, EQUAL, NOT_EQUAL, LESS_EQ, GREATER_EQ = (
-    'PLUS', 'MINUS', 'MUL', 'DIV', 'REAL_DIV', 'MOD', 'EOF', 'RPAREN', 'LPAREN', 'LESS', 'GREATER', 'EQUAL', 'NOT_EQUAL',
+    'PLUS', 'MINUS', 'MUL', 'DIV', 'REAL_DIV', 'MOD', 'EOF', 'RPAREN', 'LPAREN', 'LESS', 'GREATER', 'EQUAL',
+    'NOT_EQUAL',
     'LESS_EQ', 'GREATER_EQ'
 )
 
@@ -21,7 +22,7 @@ DEC = 'DEC'
 DECFUN = 'DECFUN'
 APOSTROPHE = 'APOSTROPHE'
 
-#var_and_function types:
+# var_and_function types:
 STRING = 'STRING'
 BOOLEAN = 'BOOLEAN'
 FLOAT = 'FLOAT'
@@ -29,9 +30,9 @@ INTEGER = 'INTEGER'
 ARRAY = 'ARRAY'
 DO = 'DO'
 
-#unar operations:
+# unar operations:
 NOT = 'NOT'
 
-#Logic operations:
+# Logic operations:
 AND = 'AND'
 OR = 'OR'

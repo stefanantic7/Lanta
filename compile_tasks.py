@@ -1,5 +1,5 @@
 import os
-path = './zadaci/'
+path = './examples/'
 
 print('PROCESSING...')
 for file_name in os.listdir(path):

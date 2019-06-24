@@ -1,11 +1,13 @@
-class AST(object):
+class Node(object):
     def __init__(self, line_counter):
         self.line_counter = line_counter
 
-class Null(AST):
+
+class Null(Node):
     pass
 
-class Program(AST):
+
+class Program(Node):
     def __init__(self, declarations, line_counter):
         super().__init__(line_counter)
         self.children = declarations
@@ -13,7 +15,8 @@ class Program(AST):
     def __repr__(self):
         return str(self.children)
 
-class BuiltInFunction(AST):
+
+class BuiltInFunction(Node):
     def __init__(self, function, line_counter):
         super().__init__(line_counter)
         self.function = function
@@ -21,7 +24,8 @@ class BuiltInFunction(AST):
     def __repr__(self):
         return "BuiltInFunction node: {}".format(self.function)
 
-class FunDecl(AST):
+
+class FunDecl(Node):
     def __init__(self, type_node, fun_name, args_node, stmts_node, line_counter=0):
         super().__init__(line_counter)
         self.type_node = type_node
@@ -29,97 +33,121 @@ class FunDecl(AST):
         self.args_node = args_node
         self.stmts_node = stmts_node
 
-class Return(AST):
+
+class Return(Node):
     def __init__(self, var, line_counter):
         super().__init__(line_counter)
         self.var = var
 
-class Type(AST):
-    def __init__(self, type, line_counter=0):
-        super().__init__(line_counter)
-        self.type = type
 
-class Var(AST):
+class Type(Node):
+    def __init__(self, var_type, line_counter=0):
+        super().__init__(line_counter)
+        self.type = var_type
+
+
+class Var(Node):
     def __init__(self, var, line_counter=0):
         super().__init__(line_counter)
         self.var = var
 
-class FunctionCall(AST):
+
+class FunctionCall(Node):
     def __init__(self, fun_name, arg_vars, line_counter):
         super().__init__(line_counter)
         self.fun_name = fun_name
         self.arg_vars = arg_vars
 
-class VarDecl(AST):
+
+class VarDecl(Node):
     def __init__(self, type_node, var_node, line_counter=0):
         super().__init__(line_counter)
         self.type_node = type_node
         self.var_node = var_node
 
-class Assign(AST):
+
+class Assign(Node):
     def __init__(self, var_node, expr, line_counter):
         super().__init__(line_counter)
         self.var_node = var_node
         self.expr = expr
 
-class Args(AST):
+
+class Args(Node):
     def __init__(self, args, line_counter=0):
         super().__init__(line_counter)
         self.args = args
 
-class Stmts(AST):
+
+class Stmts(Node):
     def __init__(self, stmts, line_counter=0):
         super().__init__(line_counter)
         self.stmts = stmts
 
-class BinOp(AST):
+
+class BinOp(Node):
     def __init__(self, left, op, right, line_counter):
         super().__init__(line_counter)
         self.left = left
         self.token = self.op = op
         self.right = right
 
-class ComparationOp(BinOp):
+
+class ComparisonOp(BinOp):
     pass
+
 
 class LogicOp(BinOp):
     pass
 
-class UnOp(AST):
+
+class UnOp(Node):
     def __init__(self, token, bool_expr, line_counter):
         super().__init__(line_counter)
         self.token = token
         self.bool_expr = bool_expr
 
-class Condition(AST):
+
+class Condition(Node):
     def __init__(self, condition_bool, stmts_node, line_counter):
         super().__init__(line_counter)
         self.condition_bool = condition_bool
         self.stmts_node = stmts_node
 
+
 class LoopCondition(Condition):
     pass
 
-class Num(AST):
+
+class Num(Node):
     def __init__(self, token, line_counter):
         super().__init__(line_counter)
         self.token = token
         self.value = token.value
 
-class ConcatStr(AST):
+
+class ConcatStr(Node):
     def __init__(self, left, right, line_counter):
         super().__init__(line_counter)
         self.left = left
         self.right = right
 
-class String(AST):
+
+class String(Node):
     def __init__(self, token, line_counter):
         super().__init__(line_counter)
         self.token = token
         self.value = token.value
 
+
 class NodeVisitor(object):
     def visit(self, node):
+        """
+        Dynamically call method based on node type.
+        Example: For type Condition, call method visit_Condition
+        :param node: Node that will be visited.
+        :return:
+        """
         method_name = 'visit_{}'.format(type(node).__name__)
         visitor = getattr(self, method_name, self.error)
         return visitor(node)

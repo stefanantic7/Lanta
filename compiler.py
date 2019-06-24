@@ -9,13 +9,12 @@ from interpreter.syntax_analysis.parser import Parser
 from built_in_fun_generator import built_in_impl_map, built_in_metadata_map
 
 
-class ASTVisualizer(NodeVisitor):
+class PythonGenerator(NodeVisitor):
 
     def __init__(self, parser):
         self.num_tabs = 0
 
         self.parser = parser
-        self.nodecount = 1
         self.dot_heder = [textwrap.dedent("""
             ## Coded by Antole.
         """)]
@@ -90,17 +89,6 @@ class ASTVisualizer(NodeVisitor):
         return True
 
     def check_if_func_has_return(self, stmts_node):
-        # has_return = False
-        # for statement in stmts_node.stmts:
-        #     if isinstance(statement, Stmts):
-        #         if self.check_if_func_has_return(statement):
-        #             has_return = True
-        #     elif isinstance(statement, LoopCondition) or isinstance(statement, Condition):
-        #         if self.check_if_func_has_return(statement.stmts_node):
-        #             has_return = True
-        #     elif isinstance(statement, Return):
-        #         has_return = True
-        # return has_return
         has_return = False
         for statement in stmts_node.stmts:
             if isinstance(statement, Stmts):
@@ -126,9 +114,6 @@ class ASTVisualizer(NodeVisitor):
         return tabs
 
     def visit_Program(self, node):
-        node.num = self.nodecount
-        self.nodecount += 1
-
         for child in node.children:
             self.visit(child)
 
@@ -194,7 +179,7 @@ class ASTVisualizer(NodeVisitor):
                                "Return type should be {}, {} returned"
                                .format(self.get_func_type(self.current_scope), self.get_var_type(node.var.var, self.current_scope)))
 
-        s = 'return '.format(self.nodecount)
+        s = 'return '
         self.dot_body.append(s)
 
         self.visit(node.var)
@@ -221,8 +206,7 @@ class ASTVisualizer(NodeVisitor):
                 self.dot_body.append('\n')
 
     def visit_Type(self, node):
-        node.num = self.nodecount
-        self.nodecount += 1
+        pass
 
     def visit_Var(self, node):
         if not self.is_var_visible(node.var, self.current_scope):
@@ -256,11 +240,7 @@ class ASTVisualizer(NodeVisitor):
         s = ')'
         self.dot_body.append(s)
 
-
     def visit_BinOp(self, node):
-        node.num = self.nodecount
-        self.nodecount += 1
-
         self.dot_body.append('(')
 
         self.visit(node.left)
@@ -273,7 +253,6 @@ class ASTVisualizer(NodeVisitor):
         self.visit(node.right)
 
         self.dot_body.append(')')
-
 
     def visit_UnOp(self, node):
         if node.token.type == NOT:
@@ -311,7 +290,7 @@ class ASTVisualizer(NodeVisitor):
 
         self.decrement_tabs()
 
-    def visit_ComparationOp(self, node):
+    def visit_ComparisonOp(self, node):
         self.dot_body.append('(')
 
         self.visit(node.left)
@@ -323,23 +302,15 @@ class ASTVisualizer(NodeVisitor):
 
         self.dot_body.append(')')
 
-
     def visit_Num(self, node):
         s = str(node.value)
-        node.num = self.nodecount
-        self.nodecount += 1
         self.dot_body.append(s)
 
     def visit_String(self, node):
         s = node.value
-        node.num = self.nodecount
-        self.nodecount += 1
         self.dot_body.append(s)
 
     def visit_ConcatStr(self, node):
-        node.num = self.nodecount
-        self.nodecount += 1
-
         self.visit(node.left)
 
         s = '+'
@@ -347,26 +318,24 @@ class ASTVisualizer(NodeVisitor):
 
         self.visit(node.right)
 
-    def genDot(self):
+    def generate_python(self):
         tree = self.parser.parse()
         self.visit(tree)
         return ''.join(self.dot_heder + self.dot_body + self.dot_footer)
 
 
 def main():
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('fname')
-    args = argparser.parse_args()
-    fname = args.fname
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('file_name')
+    args = arg_parser.parse_args()
+    file_name = args.file_name
 
-    # fname = './zadaci/test.app'
-
-    text = open(fname, 'r').read()
+    text = open(file_name, 'r').read()
 
     lexer = Lexer(text)
     parser = Parser(lexer)
-    viz = ASTVisualizer(parser)
-    content = viz.genDot()
+    python_generator = PythonGenerator(parser)
+    content = python_generator.generate_python()
 
     print(content)
 

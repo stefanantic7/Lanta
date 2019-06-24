@@ -5,6 +5,7 @@ from interpreter.lexical_analysis.tokenType import *
 # 123 => integer
 # int => type
 
+
 class Lexer(object):
     def __init__(self, text):
         self.text = text
@@ -32,13 +33,13 @@ class Lexer(object):
     def number(self):
         number_value = ""
 
-        while (self.current_char is not None and self.current_char.isdigit()):
+        while self.current_char is not None and self.current_char.isdigit():
             number_value += self.current_char
             self.advance()
         if self.current_char == '.':
             number_value += self.current_char
             self.advance()
-            while (self.current_char is not None and self.current_char.isdigit()):
+            while self.current_char is not None and self.current_char.isdigit():
                 number_value += self.current_char
                 self.advance()
             return Token(FLOAT, float(number_value))
@@ -76,7 +77,6 @@ class Lexer(object):
         return Token(ID, result)
 
     def _id(self):
-        #ovde kljucne reci, a ne tipovi
         result = ""
         while self.current_char is not None and (self.current_char.isalnum() or self.current_char == '_'):
             result += self.current_char
@@ -109,23 +109,17 @@ class Lexer(object):
         else:
             return Token(ID, result)
 
-
     def skip_whitespace(self):
 
-        while (self.current_char is not None and self.current_char.isspace()):
+        while self.current_char is not None and self.current_char.isspace():
             if self.current_char == '\n':
                 self.new_line()
             self.advance()
-
 
     def get_next_token(self):
         while self.current_char is not None:
             if self.current_char.isspace():
                 self.skip_whitespace()
-
-            # print('------')
-            # print(self.current_char)
-            # print('******')
 
             if self.current_char is None:
                 return Token(EOF, None)
@@ -133,7 +127,6 @@ class Lexer(object):
             if self.current_char.isdigit():
                 return self.number()
 
-            #Ovo
             if self.current_char.isalpha():
                 return self._id()
 
@@ -166,12 +159,10 @@ class Lexer(object):
                 self.advance()
                 return Token(RBRACKET, '}')
 
-            #Ovo
             if self.current_char == '.':
                 self.advance()
                 return Token(DOT, '.')
 
-            #Ovo
             if self.current_char == '#':
                 self.advance()
                 return Token(HASH, '#')
@@ -247,7 +238,6 @@ class Lexer(object):
                 if self.current_char == '|':
                     self.advance()
                     return Token(AND, '||')
-
 
             self.error()
 
