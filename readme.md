@@ -1,13 +1,13 @@
-# Lant - a simple programming language and compiler
+# Lanta - a simple programming language and compiler
 
-Lant is my simple programming language described in file grammar.txt
+Lanta is my simple programming language described in file grammar.txt
 
-Lant compiler is written in python 3 and transpile lant code to raw python 3.
+Lanta compiler is written in python 3 and transpile lanta code to raw python 3.
 
-Compile lant by command:
+Compile lanta by command:
 
 ```bash
-python lant.py input.lnt > output.lnt
+python lanta.py input.lnt > output.py
 ```
 
 Sublime theme example:
